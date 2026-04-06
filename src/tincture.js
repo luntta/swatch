@@ -43,6 +43,41 @@ function tincture(color, options) {
 			this.hasAlpha = true;
 			this.rgb = this._HSLAToRGBA(color, true);
 			break;
+		case "RGBObj":
+			this.hasAlpha = false;
+			this.rgb = { r: +color.r, g: +color.g, b: +color.b };
+			break;
+		case "RGBAObj":
+			this.hasAlpha = true;
+			this.rgb = {
+				r: +color.r,
+				g: +color.g,
+				b: +color.b,
+				a: +color.a
+			};
+			break;
+		case "HSLObj":
+			this.hasAlpha = false;
+			this.rgb = this._HSLToRGB(
+				"hsl(" + color.h + "," + color.s + "%," + color.l + "%)",
+				true
+			);
+			break;
+		case "HSLAObj":
+			this.hasAlpha = true;
+			this.rgb = this._HSLAToRGBA(
+				"hsla(" +
+					color.h +
+					"," +
+					color.s +
+					"%," +
+					color.l +
+					"%," +
+					color.a +
+					")",
+				true
+			);
+			break;
 		default:
 			this.isValid = false;
 			return;
@@ -226,50 +261,30 @@ tincture.prototype = {
 
 	getFormat: function(color) {
 		color = color ? color : this._original;
-		if (
-			color.hasOwnProperty("r") &&
-			color.hasOwnProperty("g") &&
-			color.hasOwnProperty("b")
-		) {
-			if (color.hasOwnProperty("a")) {
-				let color =
-					"rgba(" +
-					color.r +
-					"," +
-					color.g +
-					"," +
-					color.b +
-					"," +
-					a +
-					")";
-				if (this.isRGBAString(color) == true) return "RGBAObj";
+
+		// Object inputs: { r, g, b [, a] } or { h, s, l [, a] }
+		if (color !== null && typeof color === "object") {
+			const hasRGB =
+				Object.prototype.hasOwnProperty.call(color, "r") &&
+				Object.prototype.hasOwnProperty.call(color, "g") &&
+				Object.prototype.hasOwnProperty.call(color, "b");
+			if (hasRGB) {
+				return Object.prototype.hasOwnProperty.call(color, "a")
+					? "RGBAObj"
+					: "RGBObj";
 			}
-			let color = "rgb(" + color.r + "," + color.g + "," + color.b + ")";
-			if (this.isRGBString(color) == true) return "RGBObj";
+			const hasHSL =
+				Object.prototype.hasOwnProperty.call(color, "h") &&
+				Object.prototype.hasOwnProperty.call(color, "s") &&
+				Object.prototype.hasOwnProperty.call(color, "l");
+			if (hasHSL) {
+				return Object.prototype.hasOwnProperty.call(color, "a")
+					? "HSLAObj"
+					: "HSLObj";
+			}
 		}
 
-		if (
-			color.hasOwnProperty("h") &&
-			color.hasOwnProperty("s") &&
-			color.hasOwnProperty("l")
-		) {
-			if (color.hasOwnProperty("a")) {
-				color =
-					"hsla(" +
-					color.h +
-					"," +
-					color.s +
-					"," +
-					color.l +
-					"," +
-					a +
-					")";
-				if (this.isHSLAString(color) == true) return "HSLAObj";
-			}
-			color = "hsl(" + color.h + "," + color.s + "," + color.l + ")";
-			if (this.isHSLString(color) == true) return "HSLObj";
-		}
-
+		// String inputs
 		if (typeof color === "string") {
 			if (this.isRGBString(color) == true) return "RGB";
 			if (this.isRGBAString(color) == true) return "RGBA";
@@ -278,6 +293,7 @@ tincture.prototype = {
 			if (this.isHSLString(color) == true) return "HSL";
 			if (this.isHSLAString(color) == true) return "HSLA";
 		}
+
 		this.isValid = false;
 		return;
 	},
@@ -973,47 +989,38 @@ tincture.prototype = {
 
 		const matrix = matrices[colorBlindnessType];
 
-		if (!rgbObj.hasOwnProperty("a")) rgbObj.a = 1;
-
 		if (
-			rgbObj.hasOwnProperty("r") &&
-			rgbObj.hasOwnProperty("g") &&
-			rgbObj.hasOwnProperty("b") &&
-			matrix.length >= 20
+			!matrix ||
+			!Object.prototype.hasOwnProperty.call(rgbObj, "r") ||
+			!Object.prototype.hasOwnProperty.call(rgbObj, "g") ||
+			!Object.prototype.hasOwnProperty.call(rgbObj, "b")
 		) {
-			const r =
-				rgbObj.r * matrix[0] +
-				rgbObj.g * matrix[1] +
-				rgbObj.b * matrix[2] +
-				rgbObj.a * matrix[3] +
-				matrix[4];
-			const g =
-				rgbObj.r * matrix[5] +
-				rgbObj.g * matrix[6] +
-				rgbObj.b * matrix[7] +
-				rgbObj.a * matrix[8] +
-				matrix[9];
-			const b =
-				rgbObj.r * matrix[10] +
-				rgbObj.g * matrix[11] +
-				rgbObj.b * matrix[12] +
-				rgbObj.a * matrix[13] +
-				matrix[14];
-			const a =
-				rgbObj.r * matrix[15] +
-				rgbObj.g * matrix[16] +
-				rgbObj.b * matrix[17] +
-				rgbObj.a * matrix[18] +
-				matrix[19];
-			return {
-				r: this._correctRGBChannelValue(r),
-				g: this._correctRGBChannelValue(g),
-				b: this._correctRGBChannelValue(b),
-				a: this._correctRGBChannelValue(a)
-			};
+			this.isValid = false;
+			return;
 		}
-		this.isValid = false;
-		return;
+
+		// Apply the simulation as a pure 3×3 transform. The original
+		// matrices are stored as flat 5×5 affine blocks but the alpha
+		// coefficients are all zero and alpha must not be color-mixed,
+		// so we read only the r/g/b contributions per output channel.
+		const r =
+			rgbObj.r * matrix[0] + rgbObj.g * matrix[1] + rgbObj.b * matrix[2];
+		const g =
+			rgbObj.r * matrix[5] + rgbObj.g * matrix[6] + rgbObj.b * matrix[7];
+		const b =
+			rgbObj.r * matrix[10] +
+			rgbObj.g * matrix[11] +
+			rgbObj.b * matrix[12];
+
+		const out = {
+			r: this._correctRGBChannelValue(r),
+			g: this._correctRGBChannelValue(g),
+			b: this._correctRGBChannelValue(b)
+		};
+		if (Object.prototype.hasOwnProperty.call(rgbObj, "a")) {
+			out.a = rgbObj.a;
+		}
+		return out;
 	},
 
 	_removeGammaCorrection: function(rgbObj) {
@@ -1072,7 +1079,7 @@ tincture.prototype = {
 
 	_RGBToLMS: function(rgbObj) {
 		rgbObj = rgbObj ? rgbObj : this.rgb;
-		rgbObj = this._removeGammaCorrection();
+		rgbObj = this._removeGammaCorrection(rgbObj);
 
 		return this._linearRGBToLMS(rgbObj);
 	},
