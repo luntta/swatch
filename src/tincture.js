@@ -1092,6 +1092,229 @@ tincture.prototype = {
 		return { l: lmsMatrix[0][0], m: lmsMatrix[1][0], s: lmsMatrix[2][0] };
 	},
 
+	// ─── Perceptual color spaces ───────────────────────────────────────
+	// All methods produce a fresh plain object from this.rgb. They do
+	// not cache; callers can memoize if needed.
+
+	// sRGB → linear-light sRGB (gamma removed), channels in [0, 1].
+	toLinearRGB: function() {
+		return this._removeGammaCorrection(this.rgb);
+	},
+
+	// sRGB → CIE XYZ, D65. Scale: Y ≈ 1 for white.
+	toXYZ: function() {
+		return this._linearRGBToXYZ(this.toLinearRGB());
+	},
+
+	// sRGB → CIE Lab, D65. L in [0, 100]; a,b are signed.
+	toLab: function() {
+		return this._XYZToLab(this.toXYZ());
+	},
+
+	// sRGB → CIE LCh(ab). L in [0, 100]; C ≥ 0; h in [0, 360).
+	toLch: function() {
+		return this._labToLch(this.toLab());
+	},
+
+	// sRGB → OKLab (Björn Ottosson, 2020). L in [0, 1]; a,b are signed.
+	toOklab: function() {
+		return this._linearRGBToOklab(this.toLinearRGB());
+	},
+
+	// sRGB → OKLCh. L in [0, 1]; C ≥ 0; h in [0, 360).
+	toOklch: function() {
+		return this._labToLch(this.toOklab());
+	},
+
+	// CIE XYZ (D65) → CIE Lab.
+	_XYZToLab: function(xyzObj) {
+		// D65 reference white on the [0,1] Y=1 scale.
+		const Xn = 0.95047,
+			Yn = 1.0,
+			Zn = 1.08883;
+		const delta = 6 / 29;
+		const f = function(t) {
+			return t > delta * delta * delta
+				? Math.cbrt(t)
+				: t / (3 * delta * delta) + 4 / 29;
+		};
+		const fx = f(xyzObj.x / Xn);
+		const fy = f(xyzObj.y / Yn);
+		const fz = f(xyzObj.z / Zn);
+		return {
+			l: 116 * fy - 16,
+			a: 500 * (fx - fy),
+			b: 200 * (fy - fz)
+		};
+	},
+
+	// Lab-like {l, a, b} → LCh-like {l, c, h}. Works for both CIE Lab
+	// and OKLab since the transform is identical (polar form of a,b).
+	_labToLch: function(labObj) {
+		const c = Math.hypot(labObj.a, labObj.b);
+		let h = (Math.atan2(labObj.b, labObj.a) * 180) / Math.PI;
+		if (h < 0) h += 360;
+		return { l: labObj.l, c: c, h: h };
+	},
+
+	// Linear sRGB → OKLab. Reference: Björn Ottosson, "A perceptual
+	// color space for image processing" (2020).
+	_linearRGBToOklab: function(lin) {
+		const l =
+			0.4122214708 * lin.r +
+			0.5363325363 * lin.g +
+			0.0514459929 * lin.b;
+		const m =
+			0.2119034982 * lin.r +
+			0.6806995451 * lin.g +
+			0.1073969566 * lin.b;
+		const s =
+			0.0883024619 * lin.r +
+			0.2817188376 * lin.g +
+			0.6299787005 * lin.b;
+		const lp = Math.cbrt(l);
+		const mp = Math.cbrt(m);
+		const sp = Math.cbrt(s);
+		return {
+			l: 0.2104542553 * lp + 0.793617785 * mp - 0.0040720468 * sp,
+			a: 1.9779984951 * lp - 2.428592205 * mp + 0.4505937099 * sp,
+			b: 0.0259040371 * lp + 0.7827717662 * mp - 0.808675766 * sp
+		};
+	},
+
+	// ─── Color difference ──────────────────────────────────────────────
+	//
+	// deltaE(other[, mode]) — perceptual color difference.
+	//   mode ∈ { "76", "2000" (default), "ok" }
+	//   "76"   — CIE76: euclidean distance in CIE Lab
+	//   "2000" — CIEDE2000: CIE 2000 color-difference formula (Sharma 2005)
+	//   "ok"   — euclidean distance in OKLab
+	//
+	// `other` may be a tincture instance, a CSS color string, or any
+	// plain object the constructor accepts.
+	deltaE: function(other, mode) {
+		if (!(other instanceof tincture)) {
+			other = tincture(other);
+		}
+		mode = mode || "2000";
+		if (mode === "76") return this._deltaE76(other);
+		if (mode === "2000") return this._deltaE2000(other);
+		if (mode === "ok") return this._deltaEOK(other);
+		throw new Error("Unknown deltaE mode: " + mode);
+	},
+
+	_deltaE76: function(other) {
+		const a = this.toLab();
+		const b = other.toLab();
+		return Math.hypot(a.l - b.l, a.a - b.a, a.b - b.b);
+	},
+
+	_deltaEOK: function(other) {
+		const a = this.toOklab();
+		const b = other.toOklab();
+		return Math.hypot(a.l - b.l, a.a - b.a, a.b - b.b);
+	},
+
+	// CIEDE2000 — Sharma, Wu, Dalal (2005), eq. 2–7.
+	// Parametric weights k_L = k_C = k_H = 1.
+	_deltaE2000: function(other) {
+		const lab1 = this.toLab();
+		const lab2 = other.toLab();
+		const deg = Math.PI / 180;
+
+		const L1 = lab1.l,
+			a1 = lab1.a,
+			b1 = lab1.b;
+		const L2 = lab2.l,
+			a2 = lab2.a,
+			b2 = lab2.b;
+
+		const C1 = Math.hypot(a1, b1);
+		const C2 = Math.hypot(a2, b2);
+		const Cbar = (C1 + C2) / 2;
+
+		const Cbar7 = Math.pow(Cbar, 7);
+		const G =
+			0.5 * (1 - Math.sqrt(Cbar7 / (Cbar7 + Math.pow(25, 7))));
+
+		const a1p = (1 + G) * a1;
+		const a2p = (1 + G) * a2;
+
+		const C1p = Math.hypot(a1p, b1);
+		const C2p = Math.hypot(a2p, b2);
+
+		let h1p = (Math.atan2(b1, a1p) * 180) / Math.PI;
+		if (h1p < 0) h1p += 360;
+		let h2p = (Math.atan2(b2, a2p) * 180) / Math.PI;
+		if (h2p < 0) h2p += 360;
+
+		const dLp = L2 - L1;
+		const dCp = C2p - C1p;
+
+		let dhp;
+		if (C1p * C2p === 0) {
+			dhp = 0;
+		} else if (Math.abs(h2p - h1p) <= 180) {
+			dhp = h2p - h1p;
+		} else if (h2p - h1p > 180) {
+			dhp = h2p - h1p - 360;
+		} else {
+			dhp = h2p - h1p + 360;
+		}
+		const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin((dhp / 2) * deg);
+
+		const LbarP = (L1 + L2) / 2;
+		const CbarP = (C1p + C2p) / 2;
+
+		let hbarP;
+		if (C1p * C2p === 0) {
+			hbarP = h1p + h2p;
+		} else if (Math.abs(h1p - h2p) <= 180) {
+			hbarP = (h1p + h2p) / 2;
+		} else if (h1p + h2p < 360) {
+			hbarP = (h1p + h2p + 360) / 2;
+		} else {
+			hbarP = (h1p + h2p - 360) / 2;
+		}
+
+		const T =
+			1 -
+			0.17 * Math.cos((hbarP - 30) * deg) +
+			0.24 * Math.cos(2 * hbarP * deg) +
+			0.32 * Math.cos((3 * hbarP + 6) * deg) -
+			0.2 * Math.cos((4 * hbarP - 63) * deg);
+
+		const dTheta =
+			30 * Math.exp(-Math.pow((hbarP - 275) / 25, 2));
+
+		const CbarP7 = Math.pow(CbarP, 7);
+		const Rc =
+			2 * Math.sqrt(CbarP7 / (CbarP7 + Math.pow(25, 7)));
+
+		const Sl =
+			1 +
+			(0.015 * Math.pow(LbarP - 50, 2)) /
+				Math.sqrt(20 + Math.pow(LbarP - 50, 2));
+		const Sc = 1 + 0.045 * CbarP;
+		const Sh = 1 + 0.015 * CbarP * T;
+
+		const Rt = -Math.sin(2 * dTheta * deg) * Rc;
+
+		const kL = 1,
+			kC = 1,
+			kH = 1;
+		const termL = dLp / (kL * Sl);
+		const termC = dCp / (kC * Sc);
+		const termH = dHp / (kH * Sh);
+
+		return Math.sqrt(
+			termL * termL +
+				termC * termC +
+				termH * termH +
+				Rt * termC * termH
+		);
+	},
+
 	_multiplyMatrices: function(mA, mB) {
 		var result = new Array(mA.length)
 			.fill(0)
@@ -1111,7 +1334,10 @@ tincture.prototype = {
 		if (matrix.length !== matrix[0].length) {
 			return;
 		}
-		let i = (ii = j = e = t = 0);
+		let i = 0,
+			ii = 0,
+			j = 0,
+			e = 0;
 		let dim = matrix.length;
 		let I = [],
 			C = [];
