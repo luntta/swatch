@@ -1,13 +1,27 @@
 {
   "name": "tincturelib",
-  "version": "1.0.2",
-  "description": "A multi purpose color library.",
-  "main": "index.js",
+  "version": "2.0.0-alpha.1",
+  "description": "A multi-purpose color library with first-class color blindness simulation.",
+  "type": "module",
+  "main": "./src/tincture.js",
+  "module": "./src/tincture.js",
+  "exports": {
+    ".": "./src/tincture.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"No test specified\""
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
   },
   "repository": {
     "type": "git",

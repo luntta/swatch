@@ -324,8 +324,8 @@ tincture.prototype = {
 		if (this.isHEXA(color)) {
 			let r = 0,
 				g = 0,
-				b = 0;
-			a = 1;
+				b = 0,
+				a = 1;
 
 			if (color.length == 5) {
 				r = "0x" + color[1] + color[1];
@@ -1231,3 +1231,5 @@ tincture.prototype = {
 	tMatrixDeuteranopia: [[1, 0, 0], [0.9513092, 0, 0.04866992], [0, 0, 1]],
 	tMatrixTritanopia: [[1, 0, 0], [0, 1, 0], [-0.86744736, 1.86727089, 0]]
 };
+
+export default tincture;

@@ -1,3 +1,5 @@
+import tincture from "../src/tincture.js";
+
 let cardTemplate = `
 	<style>
 		.card {
