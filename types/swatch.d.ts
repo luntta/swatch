@@ -1,5 +1,5 @@
 // Type definitions for swatch 2.0
-// Project: https://github.com/luntta/tincture
+// Project: https://github.com/luntta/swatch
 
 export interface RGB {
 	r: number;

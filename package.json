@@ -31,12 +31,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/luntta/tincture.git"
+    "url": "git+https://github.com/luntta/swatch.git"
   },
   "author": "Raine Luntta",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/luntta/tincture/issues"
+    "url": "https://github.com/luntta/swatch/issues"
   },
-  "homepage": "https://github.com/luntta/tincture#readme"
+  "homepage": "https://github.com/luntta/swatch#readme"
 }
