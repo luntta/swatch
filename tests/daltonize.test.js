@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 function expectRgbClose(a, b, tol) {
 	expect(Math.abs(a.r - b.r)).toBeLessThanOrEqual(tol);
@@ -13,7 +13,7 @@ describe("daltonize: identity at severity 0", () => {
 	for (const input of inputs) {
 		for (const type of types) {
 			it(`${type}@0 leaves ${input} unchanged`, () => {
-				const c = tincture(input);
+				const c = swatch(input);
 				const out = c.daltonize(type, { severity: 0 });
 				expectRgbClose(out.rgb, c.rgb, 1);
 			});
@@ -27,8 +27,8 @@ describe("daltonize: achromatic axis is preserved", () => {
 	for (const g of grays) {
 		for (const t of types) {
 			it(`${t}: ${g} stays gray`, () => {
-				const out = tincture(g).daltonize(t);
-				expectRgbClose(out.rgb, tincture(g).rgb, 1);
+				const out = swatch(g).daltonize(t);
+				expectRgbClose(out.rgb, swatch(g).rgb, 1);
 			});
 		}
 	}
@@ -36,13 +36,13 @@ describe("daltonize: achromatic axis is preserved", () => {
 
 describe("daltonize: alpha is preserved", () => {
 	it("RGBA input keeps alpha", () => {
-		const c = tincture("#ff000080");
+		const c = swatch("#ff000080");
 		const out = c.daltonize("protan");
 		expect(out.rgb.a).toBeCloseTo(c.rgb.a, 3);
 	});
 
 	it("RGB input has no alpha", () => {
-		const out = tincture("#ff0000").daltonize("deutan");
+		const out = swatch("#ff0000").daltonize("deutan");
 		expect(out.rgb.a).toBeUndefined();
 	});
 });
@@ -57,8 +57,8 @@ describe("daltonize: improves protan/deutan distinguishability", () => {
 		["#cc4400", "#118800", "deutan"]
 	];
 	it.each(cases)("%s vs %s under %s", (a, b, type) => {
-		const A = tincture(a);
-		const B = tincture(b);
+		const A = swatch(a);
+		const B = swatch(b);
 		const before = A.simulate(type).deltaE(B.simulate(type), "2000");
 		const dA = A.daltonize(type).simulate(type);
 		const dB = B.daltonize(type).simulate(type);
@@ -67,22 +67,22 @@ describe("daltonize: improves protan/deutan distinguishability", () => {
 	});
 });
 
-describe("daltonize: returns a tincture instance", () => {
+describe("daltonize: returns a swatch instance", () => {
 	it("result has the same prototype API", () => {
-		const out = tincture("#ff0000").daltonize("protan");
-		expect(out).toBeInstanceOf(tincture);
+		const out = swatch("#ff0000").daltonize("protan");
+		expect(out).toBeInstanceOf(swatch);
 		expect(typeof out.simulate).toBe("function");
 	});
 });
 
 describe("daltonize: rejects unsupported / bad input", () => {
 	it("throws for achromatopsia (no remaining channels)", () => {
-		expect(() => tincture("#ff0000").daltonize("achroma")).toThrow(
+		expect(() => swatch("#ff0000").daltonize("achroma")).toThrow(
 			/achromatopsia/
 		);
 	});
 	it("throws on unknown type", () => {
-		expect(() => tincture("#ff0000").daltonize("bogus")).toThrow(
+		expect(() => swatch("#ff0000").daltonize("bogus")).toThrow(
 			/CVD type/
 		);
 	});
@@ -90,7 +90,7 @@ describe("daltonize: rejects unsupported / bad input", () => {
 
 describe("daltonize: severity scales the correction", () => {
 	it("severity=0 is identity, larger severity moves further", () => {
-		const c = tincture("#ff0000");
+		const c = swatch("#ff0000");
 		const d0 = c.daltonize("protan", { severity: 0 });
 		const d05 = c.daltonize("protan", { severity: 0.5 });
 		const d1 = c.daltonize("protan", { severity: 1 });

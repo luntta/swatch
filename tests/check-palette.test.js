@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 describe("checkPalette: basic structure", () => {
 	it("returns pairs, unsafe, minDeltaE, safe", () => {
-		const result = tincture.checkPalette(["#ff0000", "#00ff00", "#0000ff"]);
+		const result = swatch.checkPalette(["#ff0000", "#00ff00", "#0000ff"]);
 		expect(result.pairs).toHaveLength(3); // C(3,2)
 		expect(Array.isArray(result.unsafe)).toBe(true);
 		expect(typeof result.minDeltaE).toBe("number");
@@ -11,7 +11,7 @@ describe("checkPalette: basic structure", () => {
 	});
 
 	it("each pair has i, j, deltaE, safe", () => {
-		const r = tincture.checkPalette(["#ff0000", "#00ff00"]);
+		const r = swatch.checkPalette(["#ff0000", "#00ff00"]);
 		expect(r.pairs[0]).toMatchObject({
 			i: 0,
 			j: 1,
@@ -21,7 +21,7 @@ describe("checkPalette: basic structure", () => {
 	});
 
 	it("a single-color palette has no pairs and is safe", () => {
-		const r = tincture.checkPalette(["#ff0000"]);
+		const r = swatch.checkPalette(["#ff0000"]);
 		expect(r.pairs).toHaveLength(0);
 		expect(r.unsafe).toHaveLength(0);
 		expect(r.safe).toBe(true);
@@ -30,7 +30,7 @@ describe("checkPalette: basic structure", () => {
 
 describe("checkPalette: identifies unsafe pairs", () => {
 	it("two near-identical colors are unsafe", () => {
-		const r = tincture.checkPalette(["#ff0000", "#fe0000"], {
+		const r = swatch.checkPalette(["#ff0000", "#fe0000"], {
 			minDeltaE: 5
 		});
 		expect(r.safe).toBe(false);
@@ -39,7 +39,7 @@ describe("checkPalette: identifies unsafe pairs", () => {
 	});
 
 	it("primary RGB without CVD is safe at moderate threshold", () => {
-		const r = tincture.checkPalette(["#ff0000", "#00ff00", "#0000ff"], {
+		const r = swatch.checkPalette(["#ff0000", "#00ff00", "#0000ff"], {
 			minDeltaE: 10
 		});
 		expect(r.safe).toBe(true);
@@ -48,10 +48,10 @@ describe("checkPalette: identifies unsafe pairs", () => {
 
 describe("checkPalette: under CVD simulation", () => {
 	it("red and green become unsafe under deutan", () => {
-		const noCvd = tincture.checkPalette(["#ff0000", "#00cc00"], {
+		const noCvd = swatch.checkPalette(["#ff0000", "#00cc00"], {
 			minDeltaE: 20
 		});
-		const deutan = tincture.checkPalette(["#ff0000", "#00cc00"], {
+		const deutan = swatch.checkPalette(["#ff0000", "#00cc00"], {
 			cvd: "deutan",
 			minDeltaE: 20
 		});
@@ -60,7 +60,7 @@ describe("checkPalette: under CVD simulation", () => {
 
 	it("the ColorBrewer Set1 (red, blue, green) is unsafe under deutan", () => {
 		const palette = ["#e41a1c", "#377eb8", "#4daf4a"];
-		const r = tincture.checkPalette(palette, {
+		const r = swatch.checkPalette(palette, {
 			cvd: "deutan",
 			minDeltaE: 11
 		});
@@ -70,11 +70,11 @@ describe("checkPalette: under CVD simulation", () => {
 });
 
 describe("checkPalette: accepts mixed input forms", () => {
-	it("strings, objects, and tincture instances mix freely", () => {
-		const r = tincture.checkPalette([
+	it("strings, objects, and swatch instances mix freely", () => {
+		const r = swatch.checkPalette([
 			"#ff0000",
 			{ r: 0, g: 255, b: 0 },
-			tincture("#0000ff")
+			swatch("#0000ff")
 		]);
 		expect(r.pairs).toHaveLength(3);
 	});
@@ -82,9 +82,9 @@ describe("checkPalette: accepts mixed input forms", () => {
 
 describe("nearestDistinguishable", () => {
 	it("returns the same color when already distinguishable", () => {
-		const target = tincture("#ff0000");
-		const against = tincture("#0000ff");
-		const out = tincture.nearestDistinguishable(target, against, {
+		const target = swatch("#ff0000");
+		const against = swatch("#0000ff");
+		const out = swatch.nearestDistinguishable(target, against, {
 			minDeltaE: 5
 		});
 		// Should be unchanged (or close to it).
@@ -92,9 +92,9 @@ describe("nearestDistinguishable", () => {
 	});
 
 	it("nudges target away when too close", () => {
-		const target = tincture("#ff0000");
-		const against = tincture("#fe0000");
-		const out = tincture.nearestDistinguishable(target, against, {
+		const target = swatch("#ff0000");
+		const against = swatch("#fe0000");
+		const out = swatch.nearestDistinguishable(target, against, {
 			minDeltaE: 30
 		});
 		// The output should now be ≥ 30 ΔE from the against color.
@@ -104,9 +104,9 @@ describe("nearestDistinguishable", () => {
 	it("under CVD, finds a deuteranopia-distinguishable alternative", () => {
 		// Red and a yellow-green are confused under deutan; nudging the
 		// target's lightness should still find a clear value.
-		const target = tincture("#ff0000");
-		const against = tincture("#cc8800");
-		const out = tincture.nearestDistinguishable(target, against, {
+		const target = swatch("#ff0000");
+		const against = swatch("#cc8800");
+		const out = swatch.nearestDistinguishable(target, against, {
 			cvd: "deutan",
 			minDeltaE: 15
 		});

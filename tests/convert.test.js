@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 describe("HEX ↔ RGB ↔ HSL round-trips", () => {
 	const cases = [
@@ -13,7 +13,7 @@ describe("HEX ↔ RGB ↔ HSL round-trips", () => {
 
 	for (const { hex, rgb, hsl } of cases) {
 		it(`${hex} → RGB → HSL`, () => {
-			const c = tincture(hex);
+			const c = swatch(hex);
 			expect(c.rgb.r).toBe(rgb.r);
 			expect(c.rgb.g).toBe(rgb.g);
 			expect(c.rgb.b).toBe(rgb.b);
@@ -27,29 +27,29 @@ describe("HEX ↔ RGB ↔ HSL round-trips", () => {
 
 describe("string output methods", () => {
 	it("toRgbString without alpha", () => {
-		const c = tincture("#336699");
+		const c = swatch("#336699");
 		expect(c.toRgbString()).toBe("rgb(51,102,153)");
 	});
 
 	it("toRgbString with alpha", () => {
-		const c = tincture("#33669980");
+		const c = swatch("#33669980");
 		// alpha is parsed as 128/255 ≈ 0.502
 		const s = c.toRgbString();
 		expect(s.startsWith("rgba(51,102,153,")).toBe(true);
 	});
 
 	it("toHslString without alpha", () => {
-		const c = tincture("#ff0000");
+		const c = swatch("#ff0000");
 		expect(c.toHslString()).toBe("hsl(0,100%,50%)");
 	});
 
 	it("toHex without alpha", () => {
-		const c = tincture("rgb(255,128,0)");
+		const c = swatch("rgb(255,128,0)");
 		expect(c.toHex()).toBe("#ff8000");
 	});
 
 	it("toHex with alpha", () => {
-		const c = tincture("rgba(255,128,0,0.5)");
+		const c = swatch("rgba(255,128,0,0.5)");
 		// 0.5 * 255 = 127.5 → rounds to 128 → 0x80
 		expect(c.toHex()).toBe("#ff800080");
 	});

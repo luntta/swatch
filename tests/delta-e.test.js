@@ -1,25 +1,25 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 describe("deltaE: identity", () => {
 	const modes = ["76", "2000", "ok"];
 	it.each(modes)("%s: ΔE(red, red) = 0", (mode) => {
-		const red = tincture("#ff0000");
+		const red = swatch("#ff0000");
 		expect(red.deltaE(red, mode)).toBeCloseTo(0, 6);
 	});
 });
 
 describe("deltaE 76 (CIE76)", () => {
 	it("white vs black = 100", () => {
-		const white = tincture("#ffffff");
-		const black = tincture("#000000");
+		const white = swatch("#ffffff");
+		const black = swatch("#000000");
 		// L1=100,a=0,b=0 vs L2=0,a=0,b=0 → sqrt(100²) = 100
 		expect(white.deltaE(black, "76")).toBeCloseTo(100, 2);
 	});
 
 	it("red vs green: large distance in Lab", () => {
-		const red = tincture("#ff0000");
-		const green = tincture("#00ff00");
+		const red = swatch("#ff0000");
+		const green = swatch("#00ff00");
 		// Known reference: ΔE76(#ff0000, #00ff00) ≈ 170.57
 		expect(red.deltaE(green, "76")).toBeCloseTo(170.57, 0);
 	});
@@ -71,7 +71,7 @@ describe("deltaE 2000 (CIEDE2000)", () => {
 	// mask bugs in the formula). Build a minimal fake with a stubbed
 	// toLab().
 	function labStub(l, a, b) {
-		const t = tincture("#808080"); // any valid instance
+		const t = swatch("#808080"); // any valid instance
 		t.toLab = () => ({ l, a, b });
 		return t;
 	}
@@ -86,8 +86,8 @@ describe("deltaE 2000 (CIEDE2000)", () => {
 	);
 
 	it("is symmetric: ΔE(x, y) = ΔE(y, x)", () => {
-		const a = tincture("#ff0000");
-		const b = tincture("#0000ff");
+		const a = swatch("#ff0000");
+		const b = swatch("#0000ff");
 		expect(a.deltaE(b)).toBeCloseTo(b.deltaE(a), 6);
 	});
 
@@ -95,8 +95,8 @@ describe("deltaE 2000 (CIEDE2000)", () => {
 		// CIEDE2000 for pure achromatic L=100 vs L=0 equals exactly 100
 		// because a,b are zero and Sl = 1 + 0.015(Lbar-50)² / sqrt(20 + (Lbar-50)²).
 		// Lbar=50 → Sl=1. So termL = 100. All other terms are 0.
-		const w = tincture("#ffffff");
-		const k = tincture("#000000");
+		const w = swatch("#ffffff");
+		const k = swatch("#000000");
 		expect(w.deltaE(k, "2000")).toBeCloseTo(100, 1);
 	});
 });
@@ -104,15 +104,15 @@ describe("deltaE 2000 (CIEDE2000)", () => {
 describe("deltaE ok (OKLab Euclidean)", () => {
 	it("white vs black ≈ 1", () => {
 		// OKLab(white) = (1, 0, 0), OKLab(black) = (0, 0, 0) → distance = 1.
-		const w = tincture("#ffffff");
-		const k = tincture("#000000");
+		const w = swatch("#ffffff");
+		const k = swatch("#000000");
 		expect(w.deltaE(k, "ok")).toBeCloseTo(1, 3);
 	});
 
 	it("red and blue are further apart than red and orange", () => {
-		const red = tincture("#ff0000");
-		const blue = tincture("#0000ff");
-		const orange = tincture("#ff8000");
+		const red = swatch("#ff0000");
+		const blue = swatch("#0000ff");
+		const orange = swatch("#ff8000");
 		expect(red.deltaE(blue, "ok")).toBeGreaterThan(
 			red.deltaE(orange, "ok")
 		);
@@ -121,23 +121,23 @@ describe("deltaE ok (OKLab Euclidean)", () => {
 
 describe("deltaE: accepts strings and objects", () => {
 	it("accepts a CSS string for 'other'", () => {
-		const red = tincture("#ff0000");
+		const red = swatch("#ff0000");
 		expect(red.deltaE("#ff0000", "76")).toBeCloseTo(0, 6);
 	});
 
 	it("accepts an {r,g,b} object for 'other'", () => {
-		const red = tincture("#ff0000");
+		const red = swatch("#ff0000");
 		expect(red.deltaE({ r: 255, g: 0, b: 0 }, "76")).toBeCloseTo(0, 6);
 	});
 
 	it("defaults to CIEDE2000", () => {
-		const a = tincture("#ff0000");
-		const b = tincture("#00ff00");
+		const a = swatch("#ff0000");
+		const b = swatch("#00ff00");
 		expect(a.deltaE(b)).toBe(a.deltaE(b, "2000"));
 	});
 
 	it("throws on unknown mode", () => {
-		const a = tincture("#ff0000");
+		const a = swatch("#ff0000");
 		expect(() => a.deltaE(a, "bogus")).toThrow(/Unknown deltaE mode/);
 	});
 });

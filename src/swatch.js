@@ -5,16 +5,16 @@
 
 import namedColors from "./named-colors.js";
 
-function tincture(color, options) {
+function swatch(color, options) {
 	color = color ? color : "";
 	options = options || {};
 
-	if (color instanceof tincture) {
+	if (color instanceof swatch) {
 		return color;
 	}
 
-	if (!(this instanceof tincture)) {
-		return new tincture(color, options);
+	if (!(this instanceof swatch)) {
+		return new swatch(color, options);
 	}
 
 	this._original = color;
@@ -103,7 +103,7 @@ function tincture(color, options) {
 	this.isValid = true;
 }
 
-tincture.prototype = {
+swatch.prototype = {
 	RGBStringToRGBObj: function(color) {
 		if (this.isRGBAString(color)) {
 			let sep = color.indexOf(",") > -1 ? "," : " ";
@@ -213,14 +213,14 @@ tincture.prototype = {
 		return this.hex;
 	},
 	clone: function() {
-		// The constructor short-circuits on `instanceof tincture`, so
+		// The constructor short-circuits on `instanceof swatch`, so
 		// pass the rgb object — which always carries the right alpha
 		// shape — to produce an independent copy.
-		return tincture(this.rgb);
+		return swatch(this.rgb);
 	},
 	equals: function(other, options) {
 		if (!this.isValid) return false;
-		if (!(other instanceof tincture)) other = tincture(other);
+		if (!(other instanceof swatch)) other = swatch(other);
 		if (!other.isValid) return false;
 
 		options = options || {};
@@ -330,10 +330,10 @@ tincture.prototype = {
 	// ─── Accessibility helpers ─────────────────────────────────────────
 	//
 	// contrast(other) — WCAG 2.1 contrast ratio against another color.
-	// Accepts a tincture, a CSS string, or any plain object the
+	// Accepts a swatch, a CSS string, or any plain object the
 	// constructor accepts. Symmetric: contrast(a, b) === contrast(b, a).
 	contrast: function(other) {
-		if (!(other instanceof tincture)) other = tincture(other);
+		if (!(other instanceof swatch)) other = swatch(other);
 		return this.getContrast(other.rgb);
 	},
 
@@ -363,7 +363,7 @@ tincture.prototype = {
 		return this.contrast(other) >= threshold;
 	},
 
-	// ensureContrast(other[, options]) — return a new tincture whose
+	// ensureContrast(other[, options]) — return a new swatch whose
 	// contrast against `other` meets `minRatio`, by walking HSL
 	// lightness while preserving hue and saturation. If walking up
 	// fails to clear the threshold the search reverses direction; if
@@ -379,9 +379,9 @@ tincture.prototype = {
 		options = options || {};
 		const minRatio = options.minRatio != null ? options.minRatio : 4.5;
 		const step = options.step != null ? options.step : 1;
-		if (!(other instanceof tincture)) other = tincture(other);
+		if (!(other instanceof swatch)) other = swatch(other);
 
-		if (this.contrast(other) >= minRatio) return tincture(this.rgb);
+		if (this.contrast(other) >= minRatio) return swatch(this.rgb);
 
 		let dir = options.direction || "auto";
 		if (dir === "auto") {
@@ -395,7 +395,7 @@ tincture.prototype = {
 			while (true) {
 				l += sign * step;
 				if (l < 0 || l > 100) return null;
-				const candidate = tincture({
+				const candidate = swatch({
 					h: baseHsl.h,
 					s: baseHsl.s,
 					l: l
@@ -410,7 +410,7 @@ tincture.prototype = {
 		if (fallback) return fallback;
 
 		// Last resort: highest-contrast extreme.
-		return tincture(other.getLuminance() > 0.5 ? "#000000" : "#ffffff");
+		return swatch(other.getLuminance() > 0.5 ? "#000000" : "#ffffff");
 	},
 
 	getFormat: function(color) {
@@ -878,7 +878,7 @@ tincture.prototype = {
 
 	// ─── Manipulation ──────────────────────────────────────────────────
 	//
-	// Mutating-by-name methods that return a *new* tincture instance.
+	// Mutating-by-name methods that return a *new* swatch instance.
 	// Lighten/darken/saturate/desaturate operate in HSL space; spin
 	// rotates hue. Amounts are in [0, 100] (HSL units) for L/S, in
 	// degrees for hue. All preserve alpha.
@@ -892,7 +892,7 @@ tincture.prototype = {
 			l: Math.max(0, Math.min(100, h.l + amount))
 		};
 		if (this.hasAlpha) out.a = h.a;
-		return tincture(out);
+		return swatch(out);
 	},
 
 	darken: function(amount) {
@@ -908,7 +908,7 @@ tincture.prototype = {
 			l: h.l
 		};
 		if (this.hasAlpha) out.a = h.a;
-		return tincture(out);
+		return swatch(out);
 	},
 
 	desaturate: function(amount) {
@@ -923,7 +923,7 @@ tincture.prototype = {
 		if (newH < 0) newH += 360;
 		const out = { h: newH, s: h.s, l: h.l };
 		if (this.hasAlpha) out.a = h.a;
-		return tincture(out);
+		return swatch(out);
 	},
 
 	greyscale: function() {
@@ -941,7 +941,7 @@ tincture.prototype = {
 			b: 255 - this.rgb.b
 		};
 		if (this.hasAlpha) out.a = this.rgb.a;
-		return tincture(out);
+		return swatch(out);
 	},
 
 	// mix(other, amount, space)
@@ -956,9 +956,9 @@ tincture.prototype = {
 	// classic naive blend); "hsl" interpolates HSL with shortest-arc
 	// hue.
 	//
-	// Alpha is interpolated linearly. Returns a new tincture instance.
+	// Alpha is interpolated linearly. Returns a new swatch instance.
 	mix: function(other, amount, space) {
-		if (!(other instanceof tincture)) other = tincture(other);
+		if (!(other instanceof swatch)) other = swatch(other);
 		amount = amount == null ? 0.5 : amount;
 		space = space || "oklab";
 		const t = Math.max(0, Math.min(1, amount));
@@ -1001,7 +1001,7 @@ tincture.prototype = {
 			let h = a.h + dh * t;
 			if (h < 0) h += 360;
 			else if (h >= 360) h -= 360;
-			out = tincture({
+			out = swatch({
 				h: h,
 				s: a.s + (b.s - a.s) * t,
 				l: a.l + (b.l - a.l) * t
@@ -1027,28 +1027,28 @@ tincture.prototype = {
 		}
 
 		if (aHasAlpha || bHasAlpha) out.a = outA;
-		return tincture(out);
+		return swatch(out);
 	},
 
 	// ─── Harmonies ─────────────────────────────────────────────────────
 	//
-	// Each harmony returns an array of new tincture instances, with the
+	// Each harmony returns an array of new swatch instances, with the
 	// receiver always at index 0.
 
 	// Two-color harmony: self + complement.
 	complementary: function() {
-		return [tincture(this.rgb), this.complement()];
+		return [swatch(this.rgb), this.complement()];
 	},
 
 	// Three-color harmony: 0°, 120°, 240°.
 	triad: function() {
-		return [tincture(this.rgb), this.spin(120), this.spin(240)];
+		return [swatch(this.rgb), this.spin(120), this.spin(240)];
 	},
 
 	// Four-color harmony: 0°, 90°, 180°, 270°.
 	tetrad: function() {
 		return [
-			tincture(this.rgb),
+			swatch(this.rgb),
 			this.spin(90),
 			this.spin(180),
 			this.spin(270)
@@ -1057,7 +1057,7 @@ tincture.prototype = {
 
 	// Three-color harmony: 0°, 150°, 210° (complementary split).
 	splitComplement: function() {
-		return [tincture(this.rgb), this.spin(150), this.spin(210)];
+		return [swatch(this.rgb), this.spin(150), this.spin(210)];
 	},
 
 	// n analogous colors centered on the receiver, evenly spaced
@@ -1066,7 +1066,7 @@ tincture.prototype = {
 		n = n == null ? 6 : n;
 		slice = slice == null ? 30 : slice;
 		if (n < 1) return [];
-		if (n === 1) return [tincture(this.rgb)];
+		if (n === 1) return [swatch(this.rgb)];
 		const step = slice / (n - 1);
 		const start = -slice / 2;
 		const out = [];
@@ -1081,13 +1081,13 @@ tincture.prototype = {
 	monochromatic: function(n) {
 		n = n == null ? 6 : n;
 		if (n < 1) return [];
-		if (n === 1) return [tincture(this.rgb)];
+		if (n === 1) return [swatch(this.rgb)];
 		const out = [];
 		for (let i = 0; i < n; i++) {
 			const l = (i / (n - 1)) * 100;
 			const hsl = { h: this.hsl.h, s: this.hsl.s, l: l };
 			if (this.hasAlpha) hsl.a = this.hsl.a;
-			out.push(tincture(hsl));
+			out.push(swatch(hsl));
 		}
 		return out;
 	},
@@ -1167,7 +1167,7 @@ tincture.prototype = {
 	// Severity is a Machado-2009-style linear interpolation between the
 	// identity and the full dichromat matrix in linear-RGB space.
 	//
-	// Returns a new tincture instance. Alpha is preserved.
+	// Returns a new swatch instance. Alpha is preserved.
 	simulate: function(type, options) {
 		const severity =
 			options && options.severity != null
@@ -1209,7 +1209,7 @@ tincture.prototype = {
 		if (this.rgb.a !== undefined) {
 			out.a = this.rgb.a;
 		}
-		return tincture(out);
+		return swatch(out);
 	},
 
 	// daltonize(type[, options]) — Fidaner color *correction* for
@@ -1219,7 +1219,7 @@ tincture.prototype = {
 	//   type     — "protan" | "deutan" | "tritan" (achroma not supported)
 	//   options  — { severity: 0..1 } (default 1.0)
 	//
-	// Returns a new tincture instance. Alpha is preserved.
+	// Returns a new swatch instance. Alpha is preserved.
 	daltonize: function(type, options) {
 		const severity =
 			options && options.severity != null
@@ -1297,7 +1297,7 @@ tincture.prototype = {
 		if (this.rgb.a !== undefined) {
 			out.a = this.rgb.a;
 		}
-		return tincture(out);
+		return swatch(out);
 	},
 
 	_normalizeCVDType: function(type) {
@@ -1523,11 +1523,11 @@ tincture.prototype = {
 	//   "2000" — CIEDE2000: CIE 2000 color-difference formula (Sharma 2005)
 	//   "ok"   — euclidean distance in OKLab
 	//
-	// `other` may be a tincture instance, a CSS color string, or any
+	// `other` may be a swatch instance, a CSS color string, or any
 	// plain object the constructor accepts.
 	deltaE: function(other, mode) {
-		if (!(other instanceof tincture)) {
-			other = tincture(other);
+		if (!(other instanceof swatch)) {
+			other = swatch(other);
 		}
 		mode = mode || "2000";
 		if (mode === "76") return this._deltaE76(other);
@@ -1827,13 +1827,13 @@ tincture.prototype = {
 
 // ─── Static helpers for palette accessibility ─────────────────────────
 
-// tincture.checkPalette(palette[, options])
+// swatch.checkPalette(palette[, options])
 //
 // Scan all unordered pairs in `palette` and report perceptual distance
 // under an optional CVD simulation. A pair is "safe" if its ΔE meets
 // or exceeds `minDeltaE`.
 //
-//   palette  — array of color inputs (string, object, or tincture)
+//   palette  — array of color inputs (string, object, or swatch)
 //   options  — {
 //     cvd:        "protan"|"deutan"|"tritan"|"achroma"|null  (default null)
 //     severity:   0..1                                       (default 1)
@@ -1842,7 +1842,7 @@ tincture.prototype = {
 //   }
 //
 // Returns: { pairs, unsafe, minDeltaE, safe }
-tincture.checkPalette = function(palette, options) {
+swatch.checkPalette = function(palette, options) {
 	options = options || {};
 	const cvd = options.cvd || null;
 	const severity = options.severity != null ? options.severity : 1;
@@ -1850,7 +1850,7 @@ tincture.checkPalette = function(palette, options) {
 	const mode = options.mode || "2000";
 
 	const colors = palette.map(function(c) {
-		return c instanceof tincture ? c : tincture(c);
+		return c instanceof swatch ? c : swatch(c);
 	});
 	const view = cvd
 		? colors.map(function(c) {
@@ -1880,7 +1880,7 @@ tincture.checkPalette = function(palette, options) {
 	};
 };
 
-// tincture.nearestDistinguishable(target, against[, options])
+// swatch.nearestDistinguishable(target, against[, options])
 //
 // Nudge `target`'s lightness until it is at least `minDeltaE` away from
 // `against` under the given CVD simulation. Lightness is the cheapest
@@ -1891,9 +1891,9 @@ tincture.checkPalette = function(palette, options) {
 //     step:    HSL lightness step in % (default 2)
 //   }
 //
-// Returns the new tincture instance, or the closest attempt if no value
+// Returns the new swatch instance, or the closest attempt if no value
 // in HSL space cleared the threshold.
-tincture.nearestDistinguishable = function(target, against, options) {
+swatch.nearestDistinguishable = function(target, against, options) {
 	options = options || {};
 	const cvd = options.cvd || null;
 	const severity = options.severity != null ? options.severity : 1;
@@ -1901,8 +1901,8 @@ tincture.nearestDistinguishable = function(target, against, options) {
 	const mode = options.mode || "2000";
 	const step = options.step != null ? options.step : 2;
 
-	const targetT = target instanceof tincture ? target : tincture(target);
-	const againstT = against instanceof tincture ? against : tincture(against);
+	const targetT = target instanceof swatch ? target : swatch(target);
+	const againstT = against instanceof swatch ? against : swatch(against);
 
 	const evalDE = function(t) {
 		const a = cvd ? t.simulate(cvd, { severity: severity }) : t;
@@ -1930,7 +1930,7 @@ tincture.nearestDistinguishable = function(target, against, options) {
 			if (newL < 0 || newL > 100) continue;
 			const hslInput = { h: baseH, s: baseS, l: newL };
 			if (hasAlpha) hslInput.a = baseHsl.a;
-			const candidate = tincture(hslInput);
+			const candidate = swatch(hslInput);
 			const de = evalDE(candidate);
 			if (de > bestDE) {
 				bestDE = de;
@@ -1944,7 +1944,7 @@ tincture.nearestDistinguishable = function(target, against, options) {
 
 // ─── Static accessibility helpers ─────────────────────────────────────
 
-// tincture.mostReadable(background, candidates[, options])
+// swatch.mostReadable(background, candidates[, options])
 //
 // Pick the most readable foreground from `candidates` against
 // `background`. Prefers the highest-contrast candidate that passes the
@@ -1956,11 +1956,11 @@ tincture.nearestDistinguishable = function(target, against, options) {
 //     size:  "normal" | "large" | "ui" (default "normal")
 //     includeFallback: boolean         (default true)
 //   }
-tincture.mostReadable = function(background, candidates, options) {
+swatch.mostReadable = function(background, candidates, options) {
 	options = options || {};
-	const bg = background instanceof tincture ? background : tincture(background);
+	const bg = background instanceof swatch ? background : swatch(background);
 	const cands = candidates.map(function(c) {
-		return c instanceof tincture ? c : tincture(c);
+		return c instanceof swatch ? c : swatch(c);
 	});
 
 	let bestPass = null;
@@ -1985,12 +1985,12 @@ tincture.mostReadable = function(background, candidates, options) {
 	if (bestPass) return bestPass;
 	if (options.includeFallback === false) return bestAny;
 
-	const black = tincture("#000000");
-	const white = tincture("#ffffff");
+	const black = swatch("#000000");
+	const white = swatch("#ffffff");
 	return black.contrast(bg) >= white.contrast(bg) ? black : white;
 };
 
-// tincture.apcaContrast(text, background)
+// swatch.apcaContrast(text, background)
 //
 // APCA (Accessible Perceptual Contrast Algorithm) — the contrast
 // formula in the WCAG 3 draft, by Andrew Somers. Returns the Lightness
@@ -2002,9 +2002,9 @@ tincture.mostReadable = function(background, candidates, options) {
 // Reference: https://github.com/Myndex/SAPC-APCA (SA98G constants).
 // Uses the "simple" gamma model (γ = 2.4) rather than the full sRGB
 // EOTF, matching the spec.
-tincture.apcaContrast = function(text, background) {
-	const t = text instanceof tincture ? text : tincture(text);
-	const b = background instanceof tincture ? background : tincture(background);
+swatch.apcaContrast = function(text, background) {
+	const t = text instanceof swatch ? text : swatch(text);
+	const b = background instanceof swatch ? background : swatch(background);
 
 	const mainTRC = 2.4;
 	const sRco = 0.2126729,
@@ -2057,4 +2057,4 @@ tincture.apcaContrast = function(text, background) {
 	return outputContrast * 100;
 };
 
-export default tincture;
+export default swatch;

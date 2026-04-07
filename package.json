@@ -1,16 +1,16 @@
 {
-  "name": "tincturelib",
-  "version": "2.0.0-alpha.1",
+  "name": "swatch",
+  "version": "2.0.0-alpha.2",
   "description": "A multi-purpose color library with first-class color blindness simulation.",
   "type": "module",
-  "main": "./src/tincture.js",
-  "module": "./src/tincture.js",
-  "types": "./types/tincture.d.ts",
+  "main": "./src/swatch.js",
+  "module": "./src/swatch.js",
+  "types": "./types/swatch.d.ts",
   "exports": {
     ".": {
-      "types": "./types/tincture.d.ts",
-      "import": "./src/tincture.js",
-      "default": "./src/tincture.js"
+      "types": "./types/swatch.d.ts",
+      "import": "./src/swatch.js",
+      "default": "./src/swatch.js"
     }
   },
   "files": [

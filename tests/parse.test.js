@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 // Reference color: solid blue #0000ff (hue = 240°).
 // All of the inputs below should parse to the same underlying RGB.
@@ -19,7 +19,7 @@ const blueInputs = [
 describe("parsing: opaque blue", () => {
 	for (const input of blueInputs) {
 		it(`parses ${input}`, () => {
-			const c = tincture(input);
+			const c = swatch(input);
 			expect(c.isValid).toBe(true);
 			expect(c.rgb.r).toBe(0);
 			expect(c.rgb.g).toBe(0);
@@ -39,7 +39,7 @@ describe("parsing: 180° cyan from non-degree hue units", () => {
 	];
 	for (const input of cyanInputs) {
 		it(`parses ${input} as cyan`, () => {
-			const c = tincture(input);
+			const c = swatch(input);
 			expect(c.isValid).toBe(true);
 			expect(c.rgb.r).toBe(0);
 			expect(c.rgb.g).toBe(255);
@@ -58,7 +58,7 @@ describe("parsing: semi-transparent blue (alpha)", () => {
 	];
 	for (const input of alphaInputs) {
 		it(`parses ${input}`, () => {
-			const c = tincture(input);
+			const c = swatch(input);
 			expect(c.isValid).toBe(true);
 			expect(c.hasAlpha).toBe(true);
 			expect(c.rgb.r).toBe(0);
@@ -79,7 +79,7 @@ describe("parsing: percent-alpha forms", () => {
 	];
 	for (const input of pctInputs) {
 		it(`parses ${input}`, () => {
-			const c = tincture(input);
+			const c = swatch(input);
 			expect(c.isValid).toBe(true);
 			expect(c.hasAlpha).toBe(true);
 			expect(c.rgb.a).toBeCloseTo(0.5, 2);
@@ -89,7 +89,7 @@ describe("parsing: percent-alpha forms", () => {
 
 describe("parsing: invalid input", () => {
 	it("marks garbage as invalid", () => {
-		const c = tincture("not a color");
+		const c = swatch("not a color");
 		expect(c.isValid).toBe(false);
 	});
 });

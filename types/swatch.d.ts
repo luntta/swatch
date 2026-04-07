@@ -1,4 +1,4 @@
-// Type definitions for tincturelib 2.0
+// Type definitions for swatch 2.0
 // Project: https://github.com/luntta/tincture
 
 export interface RGB {
@@ -33,7 +33,7 @@ export interface LCh {
 	h: number;
 }
 
-export type ColorInput = string | RGB | HSL | Tincture;
+export type ColorInput = string | RGB | HSL | Swatch;
 
 export type CVDType =
 	| "protan"
@@ -118,7 +118,7 @@ export interface MostReadableOptions extends IsReadableOptions {
 	includeFallback?: boolean;
 }
 
-export interface TinctureJSON {
+export interface SwatchJSON {
 	hex: string;
 	rgb: RGB;
 	hsl: HSL;
@@ -126,7 +126,7 @@ export interface TinctureJSON {
 	format?: string;
 }
 
-export interface Tincture {
+export interface Swatch {
 	// ─── Core state ──────────────────────────────────────────────────
 	readonly rgb: RGB;
 	readonly hsl: HSL;
@@ -140,8 +140,8 @@ export interface Tincture {
 	toHsl(): HSL;
 	toHslString(): string;
 	toHex(): string;
-	toJSON(): TinctureJSON;
-	clone(): Tincture;
+	toJSON(): SwatchJSON;
+	clone(): Swatch;
 	equals(other: ColorInput, options?: EqualsOptions): boolean;
 
 	// ─── Perceptual spaces ──────────────────────────────────────────
@@ -154,30 +154,30 @@ export interface Tincture {
 	deltaE(other: ColorInput, mode?: DeltaEMode): number;
 
 	// ─── Manipulation ───────────────────────────────────────────────
-	lighten(amount?: number): Tincture;
-	darken(amount?: number): Tincture;
-	saturate(amount?: number): Tincture;
-	desaturate(amount?: number): Tincture;
-	spin(degrees: number): Tincture;
-	greyscale(): Tincture;
-	complement(): Tincture;
-	invert(): Tincture;
-	mix(other: ColorInput, amount?: number, space?: MixSpace): Tincture;
+	lighten(amount?: number): Swatch;
+	darken(amount?: number): Swatch;
+	saturate(amount?: number): Swatch;
+	desaturate(amount?: number): Swatch;
+	spin(degrees: number): Swatch;
+	greyscale(): Swatch;
+	complement(): Swatch;
+	invert(): Swatch;
+	mix(other: ColorInput, amount?: number, space?: MixSpace): Swatch;
 
 	// ─── Harmonies ──────────────────────────────────────────────────
-	complementary(): Tincture[];
-	triad(): Tincture[];
-	tetrad(): Tincture[];
-	splitComplement(): Tincture[];
-	analogous(n?: number, slice?: number): Tincture[];
-	monochromatic(n?: number): Tincture[];
+	complementary(): Swatch[];
+	triad(): Swatch[];
+	tetrad(): Swatch[];
+	splitComplement(): Swatch[];
+	analogous(n?: number, slice?: number): Swatch[];
+	monochromatic(n?: number): Swatch[];
 
 	// ─── Colorblind story ───────────────────────────────────────────
-	simulate(type: CVDType, options?: SimulateOptions): Tincture;
+	simulate(type: CVDType, options?: SimulateOptions): Swatch;
 	daltonize(
 		type: Exclude<CVDType, "achroma" | "achromatopsia">,
 		options?: DaltonizeOptions
-	): Tincture;
+	): Swatch;
 
 	// ─── Accessibility ──────────────────────────────────────────────
 	contrast(other: ColorInput): number;
@@ -185,16 +185,16 @@ export interface Tincture {
 	ensureContrast(
 		other: ColorInput,
 		options?: EnsureContrastOptions
-	): Tincture;
+	): Swatch;
 
 	// ─── Legacy/raw WCAG helpers ────────────────────────────────────
 	getLuminance(rgb?: RGB): number;
 	getContrast(rgb1: RGB, rgb2?: RGB): number;
 }
 
-export interface TinctureConstructor {
-	(color: ColorInput): Tincture;
-	new (color: ColorInput): Tincture;
+export interface SwatchConstructor {
+	(color: ColorInput): Swatch;
+	new (color: ColorInput): Swatch;
 
 	/** Pairwise Delta E analysis across a palette, optionally under CVD. */
 	checkPalette(
@@ -207,18 +207,18 @@ export interface TinctureConstructor {
 		target: ColorInput,
 		against: ColorInput,
 		options?: NearestDistinguishableOptions
-	): Tincture;
+	): Swatch;
 
 	/** Pick the best-contrast readable foreground from candidates. */
 	mostReadable(
 		background: ColorInput,
 		candidates: ColorInput[],
 		options?: MostReadableOptions
-	): Tincture;
+	): Swatch;
 
 	/** APCA (WCAG 3 draft) lightness contrast Lc. */
 	apcaContrast(text: ColorInput, background: ColorInput): number;
 }
 
-declare const tincture: TinctureConstructor;
-export default tincture;
+declare const swatch: SwatchConstructor;
+export default swatch;

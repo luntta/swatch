@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 // Regression: _RGBToLMS previously called _removeGammaCorrection() with
 // no argument, silently swapping a passed-in rgbObj for this.rgb. This
@@ -8,7 +8,7 @@ import tincture from "../src/tincture.js";
 
 describe("_RGBToLMS honors its rgbObj argument", () => {
 	it("LMS(red) differs from LMS(blue) regardless of instance color", () => {
-		const red = tincture("#ff0000");
+		const red = swatch("#ff0000");
 
 		const lmsRed = red._RGBToLMS({ r: 255, g: 0, b: 0 });
 		const lmsBlue = red._RGBToLMS({ r: 0, g: 0, b: 255 });
@@ -25,7 +25,7 @@ describe("_RGBToLMS honors its rgbObj argument", () => {
 	});
 
 	it("LMS(this.rgb) matches LMS({r,g,b}) when they coincide", () => {
-		const blue = tincture("#0000ff");
+		const blue = swatch("#0000ff");
 		const implicit = blue._RGBToLMS();
 		const explicit = blue._RGBToLMS({ r: 0, g: 0, b: 255 });
 

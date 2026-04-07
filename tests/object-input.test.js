@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
-import tincture from "../src/tincture.js";
+import swatch from "../src/swatch.js";
 
 describe("object input: {r, g, b}", () => {
 	it("parses a plain RGB object", () => {
-		const c = tincture({ r: 0, g: 0, b: 255 });
+		const c = swatch({ r: 0, g: 0, b: 255 });
 		expect(c.isValid).toBe(true);
 		expect(c.hasAlpha).toBe(false);
 		expect(c.rgb.r).toBe(0);
@@ -14,7 +14,7 @@ describe("object input: {r, g, b}", () => {
 	});
 
 	it("coerces string values to numbers", () => {
-		const c = tincture({ r: "255", g: "128", b: "0" });
+		const c = swatch({ r: "255", g: "128", b: "0" });
 		expect(c.isValid).toBe(true);
 		expect(c.hex).toBe("#ff8000");
 	});
@@ -22,7 +22,7 @@ describe("object input: {r, g, b}", () => {
 
 describe("object input: {r, g, b, a}", () => {
 	it("parses a plain RGBA object", () => {
-		const c = tincture({ r: 255, g: 0, b: 0, a: 0.5 });
+		const c = swatch({ r: 255, g: 0, b: 0, a: 0.5 });
 		expect(c.isValid).toBe(true);
 		expect(c.hasAlpha).toBe(true);
 		expect(c.rgb.a).toBe(0.5);
@@ -33,7 +33,7 @@ describe("object input: {r, g, b, a}", () => {
 
 describe("object input: {h, s, l}", () => {
 	it("parses a plain HSL object", () => {
-		const c = tincture({ h: 120, s: 100, l: 50 });
+		const c = swatch({ h: 120, s: 100, l: 50 });
 		expect(c.isValid).toBe(true);
 		expect(c.hasAlpha).toBe(false);
 		expect(c.rgb.r).toBe(0);
@@ -45,7 +45,7 @@ describe("object input: {h, s, l}", () => {
 
 describe("object input: {h, s, l, a}", () => {
 	it("parses a plain HSLA object", () => {
-		const c = tincture({ h: 0, s: 100, l: 50, a: 0.25 });
+		const c = swatch({ h: 0, s: 100, l: 50, a: 0.25 });
 		expect(c.isValid).toBe(true);
 		expect(c.hasAlpha).toBe(true);
 		expect(c.rgb.r).toBe(255);
@@ -57,10 +57,10 @@ describe("object input: {h, s, l, a}", () => {
 
 describe("getFormat classifies objects without shadowing 'color'", () => {
 	it("recognizes RGBObj / RGBAObj / HSLObj / HSLAObj", () => {
-		const a = tincture({ r: 1, g: 2, b: 3 });
-		const b = tincture({ r: 1, g: 2, b: 3, a: 0.5 });
-		const c = tincture({ h: 10, s: 20, l: 30 });
-		const d = tincture({ h: 10, s: 20, l: 30, a: 0.5 });
+		const a = swatch({ r: 1, g: 2, b: 3 });
+		const b = swatch({ r: 1, g: 2, b: 3, a: 0.5 });
+		const c = swatch({ h: 10, s: 20, l: 30 });
+		const d = swatch({ h: 10, s: 20, l: 30, a: 0.5 });
 		expect(a._originalFormat).toBe("RGBObj");
 		expect(b._originalFormat).toBe("RGBAObj");
 		expect(c._originalFormat).toBe("HSLObj");
