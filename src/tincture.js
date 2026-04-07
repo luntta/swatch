@@ -3,6 +3,8 @@
  * Formulas for HSL conversions come from https://www.vocal.com/video/rgb-and-hsvhsihsl-color-space-conversion/
  */
 
+import namedColors from "./named-colors.js";
+
 function tincture(color, options) {
 	color = color ? color : "";
 	options = options || {};
@@ -30,6 +32,13 @@ function tincture(color, options) {
 		case "HEX":
 			this.hasAlpha = false;
 			this.rgb = this._HEXToRGB(color, true);
+			break;
+		case "Named":
+			this.hasAlpha = false;
+			this.rgb = this._HEXToRGB(
+				"#" + namedColors[color.toLowerCase()],
+				true
+			);
 			break;
 		case "HEXA":
 			this.hasAlpha = true;
@@ -292,6 +301,16 @@ tincture.prototype = {
 			if (this.isHEXA(color) == true) return "HEXA";
 			if (this.isHSLString(color) == true) return "HSL";
 			if (this.isHSLAString(color) == true) return "HSLA";
+			// CSS named colors are matched last so a custom format can
+			// shadow them. Comparison is case-insensitive.
+			if (
+				Object.prototype.hasOwnProperty.call(
+					namedColors,
+					color.toLowerCase()
+				)
+			) {
+				return "Named";
+			}
 		}
 
 		this.isValid = false;
@@ -711,6 +730,280 @@ tincture.prototype = {
 	_correctRGBChannelValue: function (value) {
 		return value < 0 ? 0 : value < 255 ? Math.round(value) : 255;
 	},
+
+	// ─── Manipulation ──────────────────────────────────────────────────
+	//
+	// Mutating-by-name methods that return a *new* tincture instance.
+	// Lighten/darken/saturate/desaturate operate in HSL space; spin
+	// rotates hue. Amounts are in [0, 100] (HSL units) for L/S, in
+	// degrees for hue. All preserve alpha.
+
+	lighten: function(amount) {
+		amount = amount == null ? 10 : amount;
+		const h = this.hsl;
+		const out = {
+			h: h.h,
+			s: h.s,
+			l: Math.max(0, Math.min(100, h.l + amount))
+		};
+		if (this.hasAlpha) out.a = h.a;
+		return tincture(out);
+	},
+
+	darken: function(amount) {
+		return this.lighten(-(amount == null ? 10 : amount));
+	},
+
+	saturate: function(amount) {
+		amount = amount == null ? 10 : amount;
+		const h = this.hsl;
+		const out = {
+			h: h.h,
+			s: Math.max(0, Math.min(100, h.s + amount)),
+			l: h.l
+		};
+		if (this.hasAlpha) out.a = h.a;
+		return tincture(out);
+	},
+
+	desaturate: function(amount) {
+		return this.saturate(-(amount == null ? 10 : amount));
+	},
+
+	spin: function(degrees) {
+		degrees = degrees || 0;
+		const h = this.hsl;
+		// Wrap into [0, 360).
+		let newH = (h.h + degrees) % 360;
+		if (newH < 0) newH += 360;
+		const out = { h: newH, s: h.s, l: h.l };
+		if (this.hasAlpha) out.a = h.a;
+		return tincture(out);
+	},
+
+	greyscale: function() {
+		return this.desaturate(100);
+	},
+
+	complement: function() {
+		return this.spin(180);
+	},
+
+	invert: function() {
+		const out = {
+			r: 255 - this.rgb.r,
+			g: 255 - this.rgb.g,
+			b: 255 - this.rgb.b
+		};
+		if (this.hasAlpha) out.a = this.rgb.a;
+		return tincture(out);
+	},
+
+	// mix(other, amount, space)
+	//
+	//   other  — color input
+	//   amount — 0..1 (0 = self, 1 = other; default 0.5)
+	//   space  — "oklab" (default) | "lab" | "linear" | "rgb" | "hsl"
+	//
+	// "oklab"/"lab" interpolate in the perceptual Lab spaces (the only
+	// option that produces clean mid-grays for hue blends). "linear"
+	// interpolates in linear sRGB; "rgb" in gamma-encoded sRGB (the
+	// classic naive blend); "hsl" interpolates HSL with shortest-arc
+	// hue.
+	//
+	// Alpha is interpolated linearly. Returns a new tincture instance.
+	mix: function(other, amount, space) {
+		if (!(other instanceof tincture)) other = tincture(other);
+		amount = amount == null ? 0.5 : amount;
+		space = space || "oklab";
+		const t = Math.max(0, Math.min(1, amount));
+
+		const aHasAlpha = this.hasAlpha;
+		const bHasAlpha = other.hasAlpha;
+		const aA = aHasAlpha ? this.rgb.a : 1;
+		const bA = bHasAlpha ? other.rgb.a : 1;
+		const outA = aA + (bA - aA) * t;
+
+		let out;
+		if (space === "rgb") {
+			out = {
+				r: this._correctRGBChannelValue(
+					this.rgb.r + (other.rgb.r - this.rgb.r) * t
+				),
+				g: this._correctRGBChannelValue(
+					this.rgb.g + (other.rgb.g - this.rgb.g) * t
+				),
+				b: this._correctRGBChannelValue(
+					this.rgb.b + (other.rgb.b - this.rgb.b) * t
+				)
+			};
+		} else if (space === "linear") {
+			const a = this._removeGammaCorrection(this.rgb);
+			const b = this._removeGammaCorrection(other.rgb);
+			const lin = {
+				r: a.r + (b.r - a.r) * t,
+				g: a.g + (b.g - a.g) * t,
+				b: a.b + (b.b - a.b) * t
+			};
+			out = this._applyGammaCorrection(lin);
+		} else if (space === "hsl") {
+			const a = this.hsl;
+			const b = other.hsl;
+			// Shortest-arc hue interpolation.
+			let dh = b.h - a.h;
+			if (dh > 180) dh -= 360;
+			else if (dh < -180) dh += 360;
+			let h = a.h + dh * t;
+			if (h < 0) h += 360;
+			else if (h >= 360) h -= 360;
+			out = tincture({
+				h: h,
+				s: a.s + (b.s - a.s) * t,
+				l: a.l + (b.l - a.l) * t
+			}).rgb;
+		} else if (space === "lab") {
+			const a = this.toLab();
+			const b = other.toLab();
+			out = this._labToRGB({
+				l: a.l + (b.l - a.l) * t,
+				a: a.a + (b.a - a.a) * t,
+				b: a.b + (b.b - a.b) * t
+			});
+		} else if (space === "oklab") {
+			const a = this.toOklab();
+			const b = other.toOklab();
+			out = this._oklabToRGB({
+				l: a.l + (b.l - a.l) * t,
+				a: a.a + (b.a - a.a) * t,
+				b: a.b + (b.b - a.b) * t
+			});
+		} else {
+			throw new Error("Unknown mix space: " + space);
+		}
+
+		if (aHasAlpha || bHasAlpha) out.a = outA;
+		return tincture(out);
+	},
+
+	// ─── Harmonies ─────────────────────────────────────────────────────
+	//
+	// Each harmony returns an array of new tincture instances, with the
+	// receiver always at index 0.
+
+	// Two-color harmony: self + complement.
+	complementary: function() {
+		return [tincture(this.rgb), this.complement()];
+	},
+
+	// Three-color harmony: 0°, 120°, 240°.
+	triad: function() {
+		return [tincture(this.rgb), this.spin(120), this.spin(240)];
+	},
+
+	// Four-color harmony: 0°, 90°, 180°, 270°.
+	tetrad: function() {
+		return [
+			tincture(this.rgb),
+			this.spin(90),
+			this.spin(180),
+			this.spin(270)
+		];
+	},
+
+	// Three-color harmony: 0°, 150°, 210° (complementary split).
+	splitComplement: function() {
+		return [tincture(this.rgb), this.spin(150), this.spin(210)];
+	},
+
+	// n analogous colors centered on the receiver, evenly spaced
+	// across `slice` degrees of hue.
+	analogous: function(n, slice) {
+		n = n == null ? 6 : n;
+		slice = slice == null ? 30 : slice;
+		if (n < 1) return [];
+		if (n === 1) return [tincture(this.rgb)];
+		const step = slice / (n - 1);
+		const start = -slice / 2;
+		const out = [];
+		for (let i = 0; i < n; i++) {
+			out.push(this.spin(start + i * step));
+		}
+		return out;
+	},
+
+	// n monochromatic shades of the receiver: same hue and saturation,
+	// lightness sampled across [0, 100].
+	monochromatic: function(n) {
+		n = n == null ? 6 : n;
+		if (n < 1) return [];
+		if (n === 1) return [tincture(this.rgb)];
+		const out = [];
+		for (let i = 0; i < n; i++) {
+			const l = (i / (n - 1)) * 100;
+			const hsl = { h: this.hsl.h, s: this.hsl.s, l: l };
+			if (this.hasAlpha) hsl.a = this.hsl.a;
+			out.push(tincture(hsl));
+		}
+		return out;
+	},
+
+	// ─── Reverse converters used by mix(space: "lab" | "oklab") ───────
+
+	// CIE Lab → linear RGB → sRGB.
+	_labToRGB: function(lab) {
+		// Lab → XYZ
+		const Xn = 0.95047,
+			Yn = 1.0,
+			Zn = 1.08883;
+		const delta = 6 / 29;
+		const fy = (lab.l + 16) / 116;
+		const fx = lab.a / 500 + fy;
+		const fz = fy - lab.b / 200;
+		const finv = function(t) {
+			return t > delta
+				? t * t * t
+				: 3 * delta * delta * (t - 4 / 29);
+		};
+		const xyz = {
+			x: Xn * finv(fx),
+			y: Yn * finv(fy),
+			z: Zn * finv(fz)
+		};
+		// XYZ → linear sRGB (inverse of _tMatrixRGBToXYZ).
+		const M = this._invertMatrix(this._tMatrixRGBToXYZ());
+		const lin = {
+			r: M[0][0] * xyz.x + M[0][1] * xyz.y + M[0][2] * xyz.z,
+			g: M[1][0] * xyz.x + M[1][1] * xyz.y + M[1][2] * xyz.z,
+			b: M[2][0] * xyz.x + M[2][1] * xyz.y + M[2][2] * xyz.z
+		};
+		lin.r = Math.max(0, Math.min(1, lin.r));
+		lin.g = Math.max(0, Math.min(1, lin.g));
+		lin.b = Math.max(0, Math.min(1, lin.b));
+		return this._applyGammaCorrection(lin);
+	},
+
+	// OKLab → linear RGB → sRGB. Inverse of `_linearRGBToOklab`.
+	_oklabToRGB: function(ok) {
+		const lp = ok.l + 0.3963377774 * ok.a + 0.2158037573 * ok.b;
+		const mp = ok.l - 0.1055613458 * ok.a - 0.0638541728 * ok.b;
+		const sp = ok.l - 0.0894841775 * ok.a - 1.291485548 * ok.b;
+		const l = lp * lp * lp;
+		const m = mp * mp * mp;
+		const s = sp * sp * sp;
+		const lin = {
+			r:
+				4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+			g:
+				-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+			b:
+				-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+		};
+		lin.r = Math.max(0, Math.min(1, lin.r));
+		lin.g = Math.max(0, Math.min(1, lin.g));
+		lin.b = Math.max(0, Math.min(1, lin.b));
+		return this._applyGammaCorrection(lin);
+	},
+
 	// ─── Colorblindness simulation & daltonization ────────────────────
 	//
 	// simulate(type[, options]) — perceptually-grounded CVD simulation.
