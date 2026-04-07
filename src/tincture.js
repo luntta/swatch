@@ -212,6 +212,65 @@ tincture.prototype = {
 	toHex: function() {
 		return this.hex;
 	},
+	clone: function() {
+		// The constructor short-circuits on `instanceof tincture`, so
+		// pass the rgb object — which always carries the right alpha
+		// shape — to produce an independent copy.
+		return tincture(this.rgb);
+	},
+	equals: function(other, options) {
+		if (!this.isValid) return false;
+		if (!(other instanceof tincture)) other = tincture(other);
+		if (!other.isValid) return false;
+
+		options = options || {};
+		const space = options.space || "rgb";
+		const tolerance = options.tolerance != null ? options.tolerance : 0;
+
+		if (space === "rgb") {
+			const a = this.rgb;
+			const b = other.rgb;
+			const aA = a.a != null ? a.a : 1;
+			const bA = b.a != null ? b.a : 1;
+			return (
+				Math.abs(a.r - b.r) <= tolerance &&
+				Math.abs(a.g - b.g) <= tolerance &&
+				Math.abs(a.b - b.b) <= tolerance &&
+				Math.abs(aA - bA) <= (tolerance > 0 ? tolerance / 255 : 0)
+			);
+		}
+		if (space === "hex") {
+			return this.hex.toLowerCase() === other.hex.toLowerCase();
+		}
+		if (space === "hsl") {
+			const a = this.hsl;
+			const b = other.hsl;
+			return (
+				Math.abs(a.h - b.h) <= tolerance &&
+				Math.abs(a.s - b.s) <= tolerance &&
+				Math.abs(a.l - b.l) <= tolerance
+			);
+		}
+		if (space === "lab" || space === "oklab") {
+			// Compare via Delta E in the requested space. Treat
+			// `tolerance` as a Delta E threshold.
+			const dE = space === "lab"
+				? this.deltaE(other, "2000")
+				: this.deltaE(other, "ok");
+			return dE <= tolerance;
+		}
+		throw new Error("Unknown equals space: " + space);
+	},
+	toJSON: function() {
+		const out = {
+			hex: this.hex,
+			rgb: this.rgb,
+			hsl: this.hsl,
+			isValid: this.isValid
+		};
+		if (this._originalFormat) out.format = this._originalFormat;
+		return out;
+	},
 	isRGBString: function(color) {
 		color = color ? color : this._original;
 		let expression = /^rgb\((((((((1?[1-9]?\d)|10\d|(2[0-4]\d)|25[0-5]),\s?)){2}|((((1?[1-9]?\d)|10\d|(2[0-4]\d)|25[0-5])\s)){2})((1?[1-9]?\d)|10\d|(2[0-4]\d)|25[0-5]))|((((([1-9]?\d(\.\d+)?)|100|(\.\d+))%,\s?){2}|((([1-9]?\d(\.\d+)?)|100|(\.\d+))%\s){2})(([1-9]?\d(\.\d+)?)|100|(\.\d+))%))\)$/i;

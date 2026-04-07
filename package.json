@@ -5,11 +5,17 @@
   "type": "module",
   "main": "./src/tincture.js",
   "module": "./src/tincture.js",
+  "types": "./types/tincture.d.ts",
   "exports": {
-    ".": "./src/tincture.js"
+    ".": {
+      "types": "./types/tincture.d.ts",
+      "import": "./src/tincture.js",
+      "default": "./src/tincture.js"
+    }
   },
   "files": [
     "src",
+    "types",
     "README.md",
     "LICENSE"
   ],
