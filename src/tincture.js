@@ -711,314 +711,209 @@ tincture.prototype = {
 	_correctRGBChannelValue: function (value) {
 		return value < 0 ? 0 : value < 255 ? Math.round(value) : 255;
 	},
-	deficiency: function(deficiency, rgbObj) {
-		deficiency = deficiency.toLowerCase();
-		rgbObj = rgbObj ? rgbObj : this.rgb;
+	// ─── Colorblindness simulation & daltonization ────────────────────
+	//
+	// simulate(type[, options]) — perceptually-grounded CVD simulation.
+	//
+	//   type     — "protan" | "deutan" | "tritan" | "achroma"
+	//              Long aliases ("protanopia", "deuteranomaly", …) accepted.
+	//   options  — { severity: 0..1 } (default 1.0 = full dichromacy)
+	//
+	// Pipeline: sRGB → linear sRGB → projection in linear space →
+	// linear sRGB → sRGB. For protan/deutan/tritan the projection is
+	// the Brettel/Viénot single-plane dichromat formula (the plane
+	// passes through the achromatic axis and a confusion-line anchor:
+	// blue for protan/deutan, red for tritan). For achroma it is a
+	// luminance-weighted (Rec. 709) collapse to the gray axis.
+	//
+	// Severity is a Machado-2009-style linear interpolation between the
+	// identity and the full dichromat matrix in linear-RGB space.
+	//
+	// Returns a new tincture instance. Alpha is preserved.
+	simulate: function(type, options) {
+		const severity =
+			options && options.severity != null
+				? Math.max(0, Math.min(1, options.severity))
+				: 1.0;
+		const normalized = this._normalizeCVDType(type);
 
-		let deficiencies = [
-			"protanopia",
-			"protanomaly",
-			"deuteranopia",
-			"deuteranomaly",
-			"tritanopia",
-			"tritanomaly",
-			"achromatopsia",
-			"achromatomaly"
-		];
-
-		if (deficiencies.indexOf(deficiency)) {
-			switch (deficiency) {
-				case "protanopia":
-
-					break;
-
-				default:
-					break;
-			}
+		let M;
+		if (normalized === "achroma") {
+			// Rec. 709 luminance coefficients (sum to 1) — applied in
+			// linear light produces correct grayscale.
+			const Yr = 0.2126,
+				Yg = 0.7152,
+				Yb = 0.0722;
+			const full = [
+				[Yr, Yg, Yb],
+				[Yr, Yg, Yb],
+				[Yr, Yg, Yb]
+			];
+			M = this._interpolateMatrix3(this._identity3(), full, severity);
+		} else {
+			const dichromat = this._dichromatRGBMatrix(normalized);
+			M = this._interpolateMatrix3(this._identity3(), dichromat, severity);
 		}
+
+		const lin = this._removeGammaCorrection(this.rgb);
+		const linOut = {
+			r: M[0][0] * lin.r + M[0][1] * lin.g + M[0][2] * lin.b,
+			g: M[1][0] * lin.r + M[1][1] * lin.g + M[1][2] * lin.b,
+			b: M[2][0] * lin.r + M[2][1] * lin.g + M[2][2] * lin.b
+		};
+		// The projection can produce values just outside [0,1]; clamp
+		// before re-encoding (Math.pow of a negative is NaN).
+		linOut.r = Math.max(0, Math.min(1, linOut.r));
+		linOut.g = Math.max(0, Math.min(1, linOut.g));
+		linOut.b = Math.max(0, Math.min(1, linOut.b));
+
+		const out = this._applyGammaCorrection(linOut);
+		if (this.rgb.a !== undefined) {
+			out.a = this.rgb.a;
+		}
+		return tincture(out);
 	},
-	toColorBlindRGB: function(colorBlindnessType, rgbObj) {
-		rgbObj = rgbObj ? rgbObj : this.rgb;
 
-
-		const matrices = {
-			True: [
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Protanopia: [
-				0.567,
-				0.433,
-				0,
-				0,
-				0,
-				0.558,
-				0.442,
-				0,
-				0,
-				0,
-				0,
-				0.242,
-				0.758,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Protanomaly: [
-				0.817,
-				0.183,
-				0,
-				0,
-				0,
-				0.333,
-				0.667,
-				0,
-				0,
-				0,
-				0,
-				0.125,
-				0.875,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Deuteranopia: [
-				0.625,
-				0.375,
-				0,
-				0,
-				0,
-				0.7,
-				0.3,
-				0,
-				0,
-				0,
-				0,
-				0.3,
-				0.7,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Deuteranomaly: [
-				0.8,
-				0.2,
-				0,
-				0,
-				0,
-				0.258,
-				0.742,
-				0,
-				0,
-				0,
-				0,
-				0.142,
-				0.858,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Tritanopia: [
-				0.95,
-				0.05,
-				0,
-				0,
-				0,
-				0,
-				0.433,
-				0.567,
-				0,
-				0,
-				0,
-				0.475,
-				0.525,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Tritanomaly: [
-				0.967,
-				0.033,
-				0,
-				0,
-				0,
-				0,
-				0.733,
-				0.267,
-				0,
-				0,
-				0,
-				0.183,
-				0.817,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Achromatopsia: [
-				0.299,
-				0.587,
-				0.114,
-				0,
-				0,
-				0.299,
-				0.587,
-				0.114,
-				0,
-				0,
-				0.299,
-				0.587,
-				0.114,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			],
-			Achromatomaly: [
-				0.618,
-				0.32,
-				0.062,
-				0,
-				0,
-				0.163,
-				0.775,
-				0.062,
-				0,
-				0,
-				0.163,
-				0.32,
-				0.516,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1,
-				0,
-				0,
-				0,
-				0,
-				0,
-				1
-			]
-		};
-
-		const matrix = matrices[colorBlindnessType];
-
-		if (
-			!matrix ||
-			!Object.prototype.hasOwnProperty.call(rgbObj, "r") ||
-			!Object.prototype.hasOwnProperty.call(rgbObj, "g") ||
-			!Object.prototype.hasOwnProperty.call(rgbObj, "b")
-		) {
-			this.isValid = false;
-			return;
+	// daltonize(type[, options]) — Fidaner color *correction* for
+	// dichromacy. Computes the simulation error in linear RGB and
+	// redistributes it into channels the user can still perceive.
+	//
+	//   type     — "protan" | "deutan" | "tritan" (achroma not supported)
+	//   options  — { severity: 0..1 } (default 1.0)
+	//
+	// Returns a new tincture instance. Alpha is preserved.
+	daltonize: function(type, options) {
+		const severity =
+			options && options.severity != null
+				? Math.max(0, Math.min(1, options.severity))
+				: 1.0;
+		const normalized = this._normalizeCVDType(type);
+		if (normalized === "achroma") {
+			throw new Error(
+				"daltonize: achromatopsia cannot be corrected (no remaining channels)"
+			);
 		}
 
-		// Apply the simulation as a pure 3×3 transform. The original
-		// matrices are stored as flat 5×5 affine blocks but the alpha
-		// coefficients are all zero and alpha must not be color-mixed,
-		// so we read only the r/g/b contributions per output channel.
-		const r =
-			rgbObj.r * matrix[0] + rgbObj.g * matrix[1] + rgbObj.b * matrix[2];
-		const g =
-			rgbObj.r * matrix[5] + rgbObj.g * matrix[6] + rgbObj.b * matrix[7];
-		const b =
-			rgbObj.r * matrix[10] +
-			rgbObj.g * matrix[11] +
-			rgbObj.b * matrix[12];
+		// Build the same simulation matrix the user would experience.
+		const dichromat = this._dichromatRGBMatrix(normalized);
+		const M = this._interpolateMatrix3(
+			this._identity3(),
+			dichromat,
+			severity
+		);
 
-		const out = {
-			r: this._correctRGBChannelValue(r),
-			g: this._correctRGBChannelValue(g),
-			b: this._correctRGBChannelValue(b)
+		const lin = this._removeGammaCorrection(this.rgb);
+		const linSim = {
+			r: M[0][0] * lin.r + M[0][1] * lin.g + M[0][2] * lin.b,
+			g: M[1][0] * lin.r + M[1][1] * lin.g + M[1][2] * lin.b,
+			b: M[2][0] * lin.r + M[2][1] * lin.g + M[2][2] * lin.b
 		};
-		if (Object.prototype.hasOwnProperty.call(rgbObj, "a")) {
-			out.a = rgbObj.a;
+
+		// Information lost to the dichromat, in linear sRGB.
+		const err = {
+			r: lin.r - linSim.r,
+			g: lin.g - linSim.g,
+			b: lin.b - linSim.b
+		};
+
+		// Fidaner shift matrices (canonical form).
+		// Red-green deficits push the red-channel error into G and B.
+		// Blue-yellow deficit (tritan) pushes the blue error into R and G.
+		let shift;
+		if (normalized === "tritan") {
+			shift = [
+				[0, 0, 0.7],
+				[0, 0, 0.7],
+				[0, 0, 0]
+			];
+		} else {
+			shift = [
+				[0, 0, 0],
+				[0.7, 0, 0],
+				[0.7, 0, 0]
+			];
+		}
+
+		const corrected = {
+			r:
+				lin.r +
+				shift[0][0] * err.r +
+				shift[0][1] * err.g +
+				shift[0][2] * err.b,
+			g:
+				lin.g +
+				shift[1][0] * err.r +
+				shift[1][1] * err.g +
+				shift[1][2] * err.b,
+			b:
+				lin.b +
+				shift[2][0] * err.r +
+				shift[2][1] * err.g +
+				shift[2][2] * err.b
+		};
+		corrected.r = Math.max(0, Math.min(1, corrected.r));
+		corrected.g = Math.max(0, Math.min(1, corrected.g));
+		corrected.b = Math.max(0, Math.min(1, corrected.b));
+
+		const out = this._applyGammaCorrection(corrected);
+		if (this.rgb.a !== undefined) {
+			out.a = this.rgb.a;
+		}
+		return tincture(out);
+	},
+
+	_normalizeCVDType: function(type) {
+		if (typeof type !== "string") {
+			throw new Error("CVD type must be a string");
+		}
+		const t = type.toLowerCase();
+		if (t === "protan" || t === "protanopia" || t === "protanomaly")
+			return "protan";
+		if (t === "deutan" || t === "deuteranopia" || t === "deuteranomaly")
+			return "deutan";
+		if (t === "tritan" || t === "tritanopia" || t === "tritanomaly")
+			return "tritan";
+		if (t === "achroma" || t === "achromatopsia" || t === "achromatomaly")
+			return "achroma";
+		throw new Error("Unknown CVD type: " + type);
+	},
+
+	// Build a 3×3 dichromat simulation matrix expressed in linear-sRGB
+	// space, by lifting the LMS plane projection through the standard
+	// linear-RGB↔LMS transforms:
+	//   M_RGB = M_LMS→RGB · M_dichromat_LMS · M_RGB→LMS
+	_dichromatRGBMatrix: function(type) {
+		const RGBToLMS = this._tMatrixRGBToLMS();
+		const LMSToRGB = this._tMatrixLMSToRGB();
+		let dichromatLMS;
+		if (type === "protan") dichromatLMS = this._tMatrixProtanopia();
+		else if (type === "deutan") dichromatLMS = this._tMatrixDeuteranopia();
+		else if (type === "tritan") dichromatLMS = this._tMatrixTritanopia();
+		else throw new Error("Unknown dichromat type: " + type);
+		return this._multiplyMatrices(
+			LMSToRGB,
+			this._multiplyMatrices(dichromatLMS, RGBToLMS)
+		);
+	},
+
+	_identity3: function() {
+		return [
+			[1, 0, 0],
+			[0, 1, 0],
+			[0, 0, 1]
+		];
+	},
+
+	_interpolateMatrix3: function(A, B, t) {
+		const out = [
+			[0, 0, 0],
+			[0, 0, 0],
+			[0, 0, 0]
+		];
+		for (let i = 0; i < 3; i++) {
+			for (let j = 0; j < 3; j++) {
+				out[i][j] = A[i][j] + (B[i][j] - A[i][j]) * t;
+			}
 		}
 		return out;
 	},
@@ -1444,25 +1339,169 @@ tincture.prototype = {
 		return this._linearRGBToLMS({ r: 1, g: 1, b: 1 });
 	},
 
+	// Brettel/Viénot dichromat plane: passes through white and a
+	// confusion-line anchor color. Solved as a 2-equation linear system
+	// via Cramer's rule. The missing cone's response is reconstructed
+	// from the remaining two as M = a·X + b·Y in LMS space.
+
+	// Protan: L is missing → L = a·M + b·S, anchor = blue.
 	_tMatrixProtanopia: function() {
-		let blue = this._blueToLMS(),
-			white = this._whiteToLMS(),
-			a =
-				(blue.l * white.s - white.l * blue.s) /
-				(blue.m * white.s - white.m * blue.s),
-			b =
-				(blue.l * white.m - white.l * blue.m) /
-				(blue.s * white.m - white.s * blue.m);
-		if (
-			blue.l == a * blue.m + b * blue.s &&
-			white.l == a * white.m + b * white.s
-		) {
-			return [[0, a, b], [0, 1, 0], [0, 0, 1]];
-		}
+		const blue = this._blueToLMS();
+		const white = this._whiteToLMS();
+		const det = white.m * blue.s - blue.m * white.s;
+		const a = (white.l * blue.s - blue.l * white.s) / det;
+		const b = (white.m * blue.l - blue.m * white.l) / det;
+		return [
+			[0, a, b],
+			[0, 1, 0],
+			[0, 0, 1]
+		];
 	},
 
-	tMatrixDeuteranopia: [[1, 0, 0], [0.9513092, 0, 0.04866992], [0, 0, 1]],
-	tMatrixTritanopia: [[1, 0, 0], [0, 1, 0], [-0.86744736, 1.86727089, 0]]
+	// Deutan: M is missing → M = a·L + b·S, anchor = blue.
+	_tMatrixDeuteranopia: function() {
+		const blue = this._blueToLMS();
+		const white = this._whiteToLMS();
+		const det = white.l * blue.s - blue.l * white.s;
+		const a = (white.m * blue.s - blue.m * white.s) / det;
+		const b = (white.l * blue.m - blue.l * white.m) / det;
+		return [
+			[1, 0, 0],
+			[a, 0, b],
+			[0, 0, 1]
+		];
+	},
+
+	// Tritan: S is missing → S = a·L + b·M, anchor = red.
+	_tMatrixTritanopia: function() {
+		const red = this._redToLMS();
+		const white = this._whiteToLMS();
+		const det = white.l * red.m - red.l * white.m;
+		const a = (white.s * red.m - red.s * white.m) / det;
+		const b = (white.l * red.s - red.l * white.s) / det;
+		return [
+			[1, 0, 0],
+			[0, 1, 0],
+			[a, b, 0]
+		];
+	}
+};
+
+// ─── Static helpers for palette accessibility ─────────────────────────
+
+// tincture.checkPalette(palette[, options])
+//
+// Scan all unordered pairs in `palette` and report perceptual distance
+// under an optional CVD simulation. A pair is "safe" if its ΔE meets
+// or exceeds `minDeltaE`.
+//
+//   palette  — array of color inputs (string, object, or tincture)
+//   options  — {
+//     cvd:        "protan"|"deutan"|"tritan"|"achroma"|null  (default null)
+//     severity:   0..1                                       (default 1)
+//     minDeltaE:  threshold below which a pair is unsafe     (default 11)
+//     mode:       "76"|"2000"|"ok"  ΔE formula               (default "2000")
+//   }
+//
+// Returns: { pairs, unsafe, minDeltaE, safe }
+tincture.checkPalette = function(palette, options) {
+	options = options || {};
+	const cvd = options.cvd || null;
+	const severity = options.severity != null ? options.severity : 1;
+	const threshold = options.minDeltaE != null ? options.minDeltaE : 11;
+	const mode = options.mode || "2000";
+
+	const colors = palette.map(function(c) {
+		return c instanceof tincture ? c : tincture(c);
+	});
+	const view = cvd
+		? colors.map(function(c) {
+				return c.simulate(cvd, { severity: severity });
+		  })
+		: colors;
+
+	const pairs = [];
+	const unsafe = [];
+	let minDE = Infinity;
+
+	for (let i = 0; i < view.length; i++) {
+		for (let j = i + 1; j < view.length; j++) {
+			const de = view[i].deltaE(view[j], mode);
+			const safe = de >= threshold;
+			const entry = { i: i, j: j, deltaE: de, safe: safe };
+			pairs.push(entry);
+			if (!safe) unsafe.push(entry);
+			if (de < minDE) minDE = de;
+		}
+	}
+	return {
+		pairs: pairs,
+		unsafe: unsafe,
+		minDeltaE: minDE === Infinity ? 0 : minDE,
+		safe: unsafe.length === 0
+	};
+};
+
+// tincture.nearestDistinguishable(target, against[, options])
+//
+// Nudge `target`'s lightness until it is at least `minDeltaE` away from
+// `against` under the given CVD simulation. Lightness is the cheapest
+// dimension to vary while preserving hue and chroma.
+//
+//   options — {
+//     cvd, severity, minDeltaE, mode  (same defaults as checkPalette)
+//     step:    HSL lightness step in % (default 2)
+//   }
+//
+// Returns the new tincture instance, or the closest attempt if no value
+// in HSL space cleared the threshold.
+tincture.nearestDistinguishable = function(target, against, options) {
+	options = options || {};
+	const cvd = options.cvd || null;
+	const severity = options.severity != null ? options.severity : 1;
+	const threshold = options.minDeltaE != null ? options.minDeltaE : 11;
+	const mode = options.mode || "2000";
+	const step = options.step != null ? options.step : 2;
+
+	const targetT = target instanceof tincture ? target : tincture(target);
+	const againstT = against instanceof tincture ? against : tincture(against);
+
+	const evalDE = function(t) {
+		const a = cvd ? t.simulate(cvd, { severity: severity }) : t;
+		const b = cvd ? againstT.simulate(cvd, { severity: severity }) : againstT;
+		return a.deltaE(b, mode);
+	};
+
+	if (evalDE(targetT) >= threshold) return targetT;
+
+	const baseHsl = targetT.hsl;
+	const baseH = baseHsl.h;
+	const baseS = baseHsl.s;
+	const baseL = baseHsl.l;
+	const hasAlpha = targetT.hasAlpha;
+
+	let best = targetT;
+	let bestDE = evalDE(targetT);
+
+	// Walk outward from baseL in both directions until we find a hit or
+	// exhaust the [0, 100] lightness range.
+	const maxDelta = 100;
+	for (let d = step; d <= maxDelta; d += step) {
+		for (const sign of [-1, 1]) {
+			const newL = baseL + sign * d;
+			if (newL < 0 || newL > 100) continue;
+			const hslInput = { h: baseH, s: baseS, l: newL };
+			if (hasAlpha) hslInput.a = baseHsl.a;
+			const candidate = tincture(hslInput);
+			const de = evalDE(candidate);
+			if (de > bestDE) {
+				bestDE = de;
+				best = candidate;
+			}
+			if (de >= threshold) return candidate;
+		}
+	}
+	return best;
 };
 
 export default tincture;

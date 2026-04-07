@@ -221,22 +221,22 @@ customElements.define(
 				if (name == "data-color1") {
 					let color1 = tincture(this.dataset.color1);
 					let color2 = tincture(this.dataset.color2);
-					let colorBlindColor1 = color1.toColorBlindRGB(
-						this.dataset.colorBlindnessType
-					);
-					let colorBlindColor1String = color1.RGBObjToRGBString(
-						colorBlindColor1
-					);
-					let colorBlindColor2 = color2.toColorBlindRGB(
-						this.dataset.colorBlindnessType
-					);
-					let colorBlindColor2String = color2.RGBObjToRGBString(
-						colorBlindColor2
-					);
+					let cvdType = this.dataset.colorBlindnessType;
+					// "-omaly" variants get partial severity; "-opia" full.
+					let severity = /omaly$/i.test(cvdType) ? 0.6 : 1;
+					let colorBlindColor1 =
+						cvdType === "True"
+							? color1
+							: color1.simulate(cvdType, { severity: severity });
+					let colorBlindColor1String = colorBlindColor1.toRgbString();
+					let colorBlindColor2 =
+						cvdType === "True"
+							? color2
+							: color2.simulate(cvdType, { severity: severity });
 
 					let contrast = color1.getContrast(
 						color2.rgb,
-						colorBlindColor1
+						colorBlindColor1.rgb
 					);
 
 					let colorContainer = card.querySelector(".visualization");
