@@ -1,0 +1,53 @@
+---
+layout: base.njk
+---
+<div class="reference-shell">
+	<aside class="reference-side">
+		<h2>Reference</h2>
+		<ol>
+			{% for item in collections.reference %}
+				<li>
+					<a href="{{ item.url | absUrl }}"
+						{% if page.url == item.url %}aria-current="page"{% endif %}>
+						{{ item.data.title }}
+					</a>
+				</li>
+			{% endfor %}
+		</ol>
+	</aside>
+
+	<article class="reference-content">
+		{% if eyebrow %}<span class="reference-eyebrow">{{ eyebrow }}</span>{% endif %}
+		<h1>{{ title }}</h1>
+		{{ content | safe }}
+
+		{% set ordered = collections.reference %}
+		{% set prevItem = false %}
+		{% set nextItem = false %}
+		{% for item in ordered %}
+			{% if item.url == page.url %}
+				{% if loop.index0 > 0 %}{% set prevItem = ordered[loop.index0 - 1] %}{% endif %}
+				{% if not loop.last %}{% set nextItem = ordered[loop.index0 + 1] %}{% endif %}
+			{% endif %}
+		{% endfor %}
+
+		<nav class="reference-pager" aria-label="Pagination">
+			<div class="prev">
+				{% if prevItem %}
+					<a href="{{ prevItem.url | absUrl }}">
+						← Previous
+						<strong>{{ prevItem.data.title }}</strong>
+					</a>
+				{% endif %}
+			</div>
+			<div class="next">
+				{% if nextItem %}
+					<a href="{{ nextItem.url | absUrl }}">
+						Next →
+						<strong>{{ nextItem.data.title }}</strong>
+					</a>
+				{% endif %}
+			</div>
+		</nav>
+	</article>
+</div>

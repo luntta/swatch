@@ -3,3 +3,5 @@ coverage/
 dist/
 *.log
 .DS_Store
+docs/_site/
+docs/.cache/

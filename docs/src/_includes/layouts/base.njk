@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{% if title %}{{ title }} · {% endif %}{{ site.title }}</title>
+		<meta name="description" content="{{ description or site.tagline }}" />
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@300..600&display=swap"
+			rel="stylesheet"
+		/>
+
+		<link rel="stylesheet" href="{{ '/assets/css/tokens.css' | absUrl }}" />
+		<link rel="stylesheet" href="{{ '/assets/css/base.css' | absUrl }}" />
+		<link rel="stylesheet" href="{{ '/assets/css/layout.css' | absUrl }}" />
+		<link rel="stylesheet" href="{{ '/assets/css/playground.css' | absUrl }}" />
+		<link rel="stylesheet" href="{{ '/assets/css/prism.css' | absUrl }}" />
+
+		<script>
+			// Apply theme synchronously to avoid flash
+			(function () {
+				try {
+					var t = localStorage.getItem("swatch-theme");
+					if (!t) {
+						t = window.matchMedia("(prefers-color-scheme: dark)").matches
+							? "dark"
+							: "light";
+					}
+					document.documentElement.dataset.theme = t;
+				} catch (e) {}
+			})();
+		</script>
+	</head>
+	<body>
+		<a href="#main" class="skip-link">Skip to content</a>
+
+		<header class="site-header">
+			<a class="wordmark" href="{{ '/' | absUrl }}" aria-label="Swatch home">
+				<span class="wordmark__name">Swatch</span>
+				<span class="wordmark__version">{{ site.version }}</span>
+			</a>
+
+			<nav class="site-nav" aria-label="Primary">
+				{% for item in site.nav %}
+					{% set href = item.href if item.external else (item.href | absUrl) %}
+					<a
+						href="{{ href }}"
+						{% if item.external %}target="_blank" rel="noopener"{% endif %}
+						{% if page.url == (item.href | absUrl) or (item.href != "/" and page.url and page.url.startsWith(item.href | absUrl)) %}aria-current="page"{% endif %}
+					>{{ item.label }}</a>
+				{% endfor %}
+				<button type="button" class="theme-toggle" aria-label="Toggle color theme" data-theme-toggle>
+					<span class="theme-toggle__dot"></span>
+				</button>
+			</nav>
+		</header>
+
+		<main id="main" class="site-main">
+			{{ content | safe }}
+		</main>
+
+		<footer class="site-footer">
+			<div class="site-footer__rule"></div>
+			<div class="site-footer__row">
+				<span class="footer-mark">Swatch · v{{ site.version }} · MIT</span>
+				<span class="footer-meta">
+					<a href="{{ site.repo }}" target="_blank" rel="noopener">GitHub</a>
+					·
+					<a href="{{ site.npm }}" target="_blank" rel="noopener">npm</a>
+				</span>
+				<span class="footer-colophon">Set in Fraunces &amp; IBM Plex Mono</span>
+			</div>
+		</footer>
+
+		<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+		<script type="module" src="{{ '/assets/js/playground/index.js' | absUrl }}"></script>
+		<script>
+			// Theme toggle
+			document.querySelector("[data-theme-toggle]")?.addEventListener("click", function () {
+				var current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+				var next = current === "dark" ? "light" : "dark";
+				document.documentElement.dataset.theme = next;
+				try { localStorage.setItem("swatch-theme", next); } catch (e) {}
+			});
+		</script>
+	</body>
+</html>

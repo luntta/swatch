@@ -1,0 +1,17 @@
+{
+  "name": "tincture-docs",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Documentation site for tincturelib",
+  "type": "module",
+  "scripts": {
+    "dev": "eleventy --serve --quiet",
+    "build": "ELEVENTY_ENV=production eleventy",
+    "clean": "rm -rf _site"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0",
+    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
+    "markdown-it-anchor": "^9.2.0"
+  }
+}

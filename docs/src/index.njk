@@ -1,0 +1,370 @@
+---
+layout: base.njk
+title: "Playground"
+description: "An interactive playground for Swatch — a color library with first-class color blindness simulation."
+---
+<div class="page">
+
+	{# ============================================================
+	   Hero
+	   ============================================================ #}
+	<section class="hero">
+		<div class="hero__copy">
+			<div class="hero__eyebrow">Swatch · v{{ site.version }}</div>
+			<h1 class="hero__title">
+				A color library, <span class="muted">built for vision.</span>
+			</h1>
+			<p class="hero__lede">
+				Physically correct Brettel/Viénot simulation, a severity continuum,
+				Fidaner daltonization, and palette distinguishability checks — plus
+				parsing, perceptual spaces, ΔE, harmonies, WCAG 2.1 and APCA contrast.
+			</p>
+			<div class="hero__cta">
+				<a class="btn btn--primary" href="#playground">Open the playground</a>
+				<a class="btn btn--ghost" href="{{ '/reference/' | absUrl }}">Read the reference</a>
+			</div>
+		</div>
+
+		<aside class="specimen" data-specimen>
+			<div class="specimen__chip" data-specimen-chip></div>
+			<dl class="specimen__meta">
+				<dt>Hex</dt>   <dd data-format="hex">—</dd>
+				<dt>RGB</dt>   <dd data-format="rgb">—</dd>
+				<dt>HSL</dt>   <dd data-format="hsl">—</dd>
+				<dt>OKLCh</dt> <dd data-format="oklch">—</dd>
+				<dt>Lab</dt>   <dd data-format="lab">—</dd>
+			</dl>
+		</aside>
+	</section>
+
+	{# ============================================================
+	   Root color input
+	   ============================================================ #}
+	<section id="playground" class="section">
+		<div class="section__head">
+			<span class="section__index">01 — Input</span>
+			<h2 class="section__title">Type a color.</h2>
+			<p class="section__lede">
+				Any CSS string, named color, hex, rgb, hsl, oklch — whatever
+				<code>swatch()</code> accepts. Every panel below tracks this value
+				live; the URL stays in sync so you can share state.
+			</p>
+		</div>
+		<t-color-input>
+			<div class="color-input">
+				<div class="color-bar">
+					<label class="color-bar__chip" data-bar-chip>
+						<input type="color" data-color-picker aria-label="Native color picker" />
+					</label>
+					<input
+						class="color-bar__input"
+						type="text"
+						data-color-text
+						spellcheck="false"
+						autocomplete="off"
+						placeholder="#3b82f6 · rgb(59 130 246) · oklch(62% 0.19 258)"
+						aria-label="Root color"
+					/>
+					<div class="color-bar__actions">
+						<button class="icon-btn" type="button" data-copy title="Copy (C)">⎘</button>
+					</div>
+				</div>
+				<button class="btn btn--ghost" type="button" data-randomize>
+					<span aria-hidden="true">↻</span> Randomize
+				</button>
+			</div>
+		</t-color-input>
+	</section>
+
+	{# ============================================================
+	   Simulation grid
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">02 — Simulation</span>
+			<h2 class="section__title">Through other eyes.</h2>
+			<p class="section__lede">
+				Roughly 1 in 12 men and 1 in 200 women have some form of color
+				vision deficiency. Most are missing (or have a shifted version
+				of) one of the three cone types in the retina, which collapses
+				the normal three-dimensional color space down to two dimensions
+				— a whole family of colors that look different to you all map
+				to the same sensation for them.
+			</p>
+			<p class="section__lede">
+				Viénot, Brettel and Mollon (1999) worked out exactly where that
+				collapse happens: for each deficiency, all the colors a
+				dichromat can't tell apart lie along straight lines in LMS cone
+				space, and every line hits a shared "confusion plane". To
+				simulate what the dichromat sees, you project the original
+				color onto that plane — keeping only the information their eyes
+				could actually recover. Drag the severity slider to walk the
+				anomalous-trichromat continuum from full color (0) to full
+				dichromacy (1), covering the milder shifted-cone cases in
+				between.
+			</p>
+		</div>
+		<t-simulation-grid>
+			<div class="severity">
+				<label for="sev">Severity</label>
+				<input id="sev" type="range" min="0" max="1" step="0.01" value="1" data-severity />
+				<span class="severity__value" data-severity-value>1.00</span>
+			</div>
+			<div class="sim-grid" data-sim-grid></div>
+		</t-simulation-grid>
+	</section>
+
+	{# ============================================================
+	   Daltonize
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">03 — Daltonize</span>
+			<h2 class="section__title">Restore lost information.</h2>
+			<p class="section__lede">
+				Daltonizing is the opposite of simulating: instead of showing
+				what a color-blind viewer sees, it <em>rewrites</em> the color
+				so the distinction they'd normally miss is pushed into channels
+				they can still see. Reds that would vanish for a deutan, for
+				instance, get nudged toward yellows and blues.
+			</p>
+			<p class="section__lede">
+				The math here is Onur Fidaner's <em>error redistribution</em>:
+				compute what the dichromat loses (original minus simulated),
+				then add a weighted slice of that lost signal back into the
+				surviving channels. Three columns per deficiency — the original,
+				the daltonized version, and that daltonized version run back
+				through simulation so you can see the difference actually
+				survived.
+			</p>
+		</div>
+		<t-daltonize>
+			<div class="dalt-table" data-dalt-table></div>
+		</t-daltonize>
+	</section>
+
+	{# ============================================================
+	   Contrast / WCAG / APCA
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">04 — Contrast</span>
+			<h2 class="section__title">WCAG 2.1 and APCA.</h2>
+			<p class="section__lede">
+				Live ratio, AA/AAA × normal/large/UI badges, and Andrew Somers'
+				signed APCA Lc. Hit auto-fix to nudge the foreground until it
+				clears your target ratio while preserving hue.
+			</p>
+		</div>
+		<t-contrast-panel>
+			<div class="contrast">
+				<div class="contrast__preview" data-contrast-preview>
+					<h3>The quick brown fox</h3>
+					<p>jumps over the lazy dog. 1234567890 — Pangram.</p>
+				</div>
+				<div class="contrast__panel">
+					<div class="contrast__pickers">
+						<label>
+							<span>Foreground</span>
+							<input type="text" data-contrast-fg spellcheck="false" />
+							<span class="swatch-dot" data-contrast-fg-dot></span>
+						</label>
+						<label>
+							<span>Background</span>
+							<input type="text" data-contrast-bg spellcheck="false" />
+							<span class="swatch-dot" data-contrast-bg-dot></span>
+						</label>
+					</div>
+					<div class="contrast__metrics">
+						<div class="metric">
+							<span class="metric__label">WCAG 2.1</span>
+							<span class="metric__value" data-contrast-ratio>—</span>
+						</div>
+						<div class="metric">
+							<span class="metric__label">APCA Lc</span>
+							<span class="metric__value" data-contrast-apca>—</span>
+						</div>
+					</div>
+					<div class="badges" data-contrast-badges></div>
+					<div style="display:flex; gap:var(--s-2);">
+						<button class="btn btn--ghost" type="button" data-contrast-fix>Auto-fix 4.5:1</button>
+						<button class="btn btn--ghost" type="button" data-contrast-swap>Swap</button>
+					</div>
+				</div>
+			</div>
+		</t-contrast-panel>
+	</section>
+
+	{# ============================================================
+	   Manipulate
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">05 — Manipulate</span>
+			<h2 class="section__title">Lighten, saturate, spin.</h2>
+			<p class="section__lede">
+				Immutable HSL-space adjustments. Click promote to lift the
+				derived color into the root and keep working from there.
+			</p>
+		</div>
+		<t-manipulate>
+			<div class="knobs">
+				<div class="knobs__sliders">
+					<div class="knob">
+						<label for="k-lighten">Lighten</label>
+						<input id="k-lighten" type="range" min="-50" max="50" step="1" value="0" data-knob="lighten" />
+						<span class="knob__value" data-knob-value="lighten">+0</span>
+					</div>
+					<div class="knob">
+						<label for="k-saturate">Saturate</label>
+						<input id="k-saturate" type="range" min="-50" max="50" step="1" value="0" data-knob="saturate" />
+						<span class="knob__value" data-knob-value="saturate">+0</span>
+					</div>
+					<div class="knob">
+						<label for="k-spin">Spin</label>
+						<input id="k-spin" type="range" min="-180" max="180" step="1" value="0" data-knob="spin" />
+						<span class="knob__value" data-knob-value="spin">+0°</span>
+					</div>
+				</div>
+				<div class="knobs__preview">
+					<div class="knobs__chip" data-knobs-chip></div>
+					<button class="knobs__hex" type="button" data-knobs-hex>—</button>
+					<div class="knobs__actions">
+						<button class="btn btn--ghost" type="button" data-knobs-reset>Reset</button>
+						<button class="btn btn--primary" type="button" data-knobs-promote>Promote</button>
+					</div>
+				</div>
+			</div>
+		</t-manipulate>
+	</section>
+
+	{# ============================================================
+	   Harmonies
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">06 — Harmonies</span>
+			<h2 class="section__title">Sets that belong together.</h2>
+			<p class="section__lede">
+				Click any chip to copy its hex; shift-click to promote it to the
+				root color.
+			</p>
+		</div>
+		<t-harmonies>
+			<div class="harmonies__tabs" data-harmonies-tabs></div>
+			<div class="harmonies__chips" data-harmonies-chips></div>
+		</t-harmonies>
+	</section>
+
+	{# ============================================================
+	   Palette distinguishability
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">07 — Palette</span>
+			<h2 class="section__title">Distinguishable under CVD.</h2>
+			<p class="section__lede">
+				A palette is only useful if every color stays visibly different
+				from every other — including for viewers with color vision
+				deficiency (CVD). Two swatches that look obviously distinct to
+				you can collapse into near-identical greys for a deutan or
+				protan, quietly breaking charts, legends, and status indicators.
+			</p>
+			<p class="section__lede">
+				Drop one color per line, pick the deficiency you're worried
+				about, and set a minimum ΔE (perceptual distance — anything
+				below ~10 tends to read as "the same color at a glance"). Swatch
+				simulates the palette under that deficiency and flags any pair
+				that falls under the threshold. Each unsafe pair gets a nudge
+				button wired to <code>nearestDistinguishable</code>, which walks
+				one color away in OKLCh until the gap clears.
+			</p>
+		</div>
+		<t-palette-check>
+			<div class="palette">
+				<div class="palette__form">
+					<textarea data-palette-input spellcheck="false"
+>#e41a1c
+#377eb8
+#4daf4a
+#984ea3
+#ff7f00</textarea>
+					<div class="palette__row">
+						<label>
+							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">CVD</span>
+							<select data-palette-cvd>
+								<option value="deutan" selected>Deutan</option>
+								<option value="protan">Protan</option>
+								<option value="tritan">Tritan</option>
+								<option value="achroma">Achroma</option>
+							</select>
+						</label>
+						<label>
+							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Min ΔE</span>
+							<input type="number" min="1" max="50" step="1" value="11" data-palette-min />
+						</label>
+					</div>
+				</div>
+				<div class="palette__report" data-palette-report>
+					<div class="palette__verdict">
+						<span class="label-mono">Verdict</span>
+						<strong>—</strong>
+					</div>
+					<div class="palette__chips" data-palette-chips></div>
+					<div class="palette__pairs" data-palette-pairs></div>
+				</div>
+			</div>
+		</t-palette-check>
+	</section>
+
+	{# ============================================================
+	   Delta E
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">08 — Delta E</span>
+			<h2 class="section__title">How far apart?</h2>
+			<p class="section__lede">
+				ΔE ("delta E") is a single number that answers "how different
+				do these two colors look?" — not in RGB units, but in units
+				roughly calibrated to human perception. A ΔE of 1 is the
+				smallest difference a trained eye can reliably spot; 2–3 is
+				noticeable; 10+ is unmistakably a different color.
+			</p>
+			<p class="section__lede">
+				The three modes trade accuracy for cost. <strong>ΔE 76</strong>
+				is the original 1976 formula — just Euclidean distance in Lab,
+				fast but crude around blues and saturated tones.
+				<strong>CIEDE2000</strong> is the industry standard: same idea,
+				but with correction terms for lightness, chroma, and hue that
+				match human judgement much better. <strong>ΔE OK</strong> is
+				the modern take, plain Euclidean distance in the OKLab space,
+				which was designed from the start to make that simple formula
+				work well.
+			</p>
+		</div>
+		<t-delta-e>
+			<div class="deltae">
+				<div class="deltae__pair">
+					<span class="swatch-dot" data-de-dot="a"></span>
+					<input type="text" data-de-input="a" spellcheck="false" />
+				</div>
+				<div class="deltae__pair">
+					<span class="swatch-dot" data-de-dot="b"></span>
+					<input type="text" data-de-input="b" spellcheck="false" />
+				</div>
+				<div class="deltae__result">
+					<span class="metric__label">ΔE</span>
+					<span class="metric__value" data-de-value>—</span>
+					<div class="deltae__modes" data-de-modes>
+						<button type="button" data-mode="2000" class="is-active">2000</button>
+						<button type="button" data-mode="76">76</button>
+						<button type="button" data-mode="ok">OK</button>
+					</div>
+					<small data-de-label class="label-mono">—</small>
+				</div>
+			</div>
+		</t-delta-e>
+	</section>
+
+</div>
