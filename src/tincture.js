@@ -268,6 +268,92 @@ tincture.prototype = {
 		return res;
 	},
 
+	// ─── Accessibility helpers ─────────────────────────────────────────
+	//
+	// contrast(other) — WCAG 2.1 contrast ratio against another color.
+	// Accepts a tincture, a CSS string, or any plain object the
+	// constructor accepts. Symmetric: contrast(a, b) === contrast(b, a).
+	contrast: function(other) {
+		if (!(other instanceof tincture)) other = tincture(other);
+		return this.getContrast(other.rgb);
+	},
+
+	// isReadable(other[, options]) — WCAG 2.1 readability check.
+	//
+	//   options — {
+	//     level: "AA" | "AAA"            (default "AA")
+	//     size:  "normal" | "large" | "ui" (default "normal")
+	//   }
+	//
+	// Thresholds:
+	//   normal AA  = 4.5,  normal AAA = 7
+	//   large  AA  = 3,    large  AAA = 4.5
+	//   ui     AA  = 3   (UI components, level AAA n/a in WCAG 2.1)
+	isReadable: function(other, options) {
+		options = options || {};
+		const level = options.level || "AA";
+		const size = options.size || "normal";
+		let threshold;
+		if (size === "large") {
+			threshold = level === "AAA" ? 4.5 : 3;
+		} else if (size === "ui") {
+			threshold = 3;
+		} else {
+			threshold = level === "AAA" ? 7 : 4.5;
+		}
+		return this.contrast(other) >= threshold;
+	},
+
+	// ensureContrast(other[, options]) — return a new tincture whose
+	// contrast against `other` meets `minRatio`, by walking HSL
+	// lightness while preserving hue and saturation. If walking up
+	// fails to clear the threshold the search reverses direction; if
+	// neither direction succeeds, falls back to pure white or black
+	// depending on `other`'s luminance.
+	//
+	//   options — {
+	//     minRatio:  WCAG ratio target            (default 4.5)
+	//     direction: "auto" | "lighter" | "darker" (default "auto")
+	//     step:      HSL L step in %              (default 1)
+	//   }
+	ensureContrast: function(other, options) {
+		options = options || {};
+		const minRatio = options.minRatio != null ? options.minRatio : 4.5;
+		const step = options.step != null ? options.step : 1;
+		if (!(other instanceof tincture)) other = tincture(other);
+
+		if (this.contrast(other) >= minRatio) return tincture(this.rgb);
+
+		let dir = options.direction || "auto";
+		if (dir === "auto") {
+			// Move away from `other`'s luminance.
+			dir = other.getLuminance() > 0.5 ? "darker" : "lighter";
+		}
+
+		const baseHsl = this.hsl;
+		const tryWalk = function(sign) {
+			let l = baseHsl.l;
+			while (true) {
+				l += sign * step;
+				if (l < 0 || l > 100) return null;
+				const candidate = tincture({
+					h: baseHsl.h,
+					s: baseHsl.s,
+					l: l
+				});
+				if (candidate.contrast(other) >= minRatio) return candidate;
+			}
+		};
+
+		const primary = tryWalk(dir === "lighter" ? 1 : -1);
+		if (primary) return primary;
+		const fallback = tryWalk(dir === "lighter" ? -1 : 1);
+		if (fallback) return fallback;
+
+		// Last resort: highest-contrast extreme.
+		return tincture(other.getLuminance() > 0.5 ? "#000000" : "#ffffff");
+	},
+
 	getFormat: function(color) {
 		color = color ? color : this._original;
 
@@ -1795,6 +1881,121 @@ tincture.nearestDistinguishable = function(target, against, options) {
 		}
 	}
 	return best;
+};
+
+// ─── Static accessibility helpers ─────────────────────────────────────
+
+// tincture.mostReadable(background, candidates[, options])
+//
+// Pick the most readable foreground from `candidates` against
+// `background`. Prefers the highest-contrast candidate that passes the
+// WCAG level/size threshold; if none pass and `includeFallback` is not
+// false, falls back to black or white (whichever has more contrast).
+//
+//   options — {
+//     level: "AA" | "AAA"              (default "AA")
+//     size:  "normal" | "large" | "ui" (default "normal")
+//     includeFallback: boolean         (default true)
+//   }
+tincture.mostReadable = function(background, candidates, options) {
+	options = options || {};
+	const bg = background instanceof tincture ? background : tincture(background);
+	const cands = candidates.map(function(c) {
+		return c instanceof tincture ? c : tincture(c);
+	});
+
+	let bestPass = null;
+	let bestPassRatio = -Infinity;
+	let bestAny = null;
+	let bestAnyRatio = -Infinity;
+
+	for (const c of cands) {
+		const ratio = c.contrast(bg);
+		if (c.isReadable(bg, options)) {
+			if (ratio > bestPassRatio) {
+				bestPassRatio = ratio;
+				bestPass = c;
+			}
+		}
+		if (ratio > bestAnyRatio) {
+			bestAnyRatio = ratio;
+			bestAny = c;
+		}
+	}
+
+	if (bestPass) return bestPass;
+	if (options.includeFallback === false) return bestAny;
+
+	const black = tincture("#000000");
+	const white = tincture("#ffffff");
+	return black.contrast(bg) >= white.contrast(bg) ? black : white;
+};
+
+// tincture.apcaContrast(text, background)
+//
+// APCA (Accessible Perceptual Contrast Algorithm) — the contrast
+// formula in the WCAG 3 draft, by Andrew Somers. Returns the Lightness
+// Contrast value Lc on a ~[-108, +106] scale:
+//   • Positive Lc — dark text on light background ("BoW").
+//   • Negative Lc — light text on dark background ("WoB").
+// Typical body-text thresholds: |Lc| ≥ 75 comfortable, ≥ 60 minimum.
+//
+// Reference: https://github.com/Myndex/SAPC-APCA (SA98G constants).
+// Uses the "simple" gamma model (γ = 2.4) rather than the full sRGB
+// EOTF, matching the spec.
+tincture.apcaContrast = function(text, background) {
+	const t = text instanceof tincture ? text : tincture(text);
+	const b = background instanceof tincture ? background : tincture(background);
+
+	const mainTRC = 2.4;
+	const sRco = 0.2126729,
+		sGco = 0.7151522,
+		sBco = 0.072175;
+
+	const apcaY = function(rgb) {
+		const r = Math.pow(rgb.r / 255, mainTRC);
+		const g = Math.pow(rgb.g / 255, mainTRC);
+		const bl = Math.pow(rgb.b / 255, mainTRC);
+		return sRco * r + sGco * g + sBco * bl;
+	};
+
+	// Soft clamp for luminances near black — below blkThrs we push
+	// them up by (blkThrs - Y)^blkClmp so that near-black pairs don't
+	// produce runaway contrast values.
+	const blkThrs = 0.022;
+	const blkClmp = 1.414;
+	const clampY = function(Y) {
+		return Y >= blkThrs ? Y : Y + Math.pow(blkThrs - Y, blkClmp);
+	};
+
+	const txtY = clampY(apcaY(t.rgb));
+	const bgY = clampY(apcaY(b.rgb));
+
+	const deltaYmin = 0.0005;
+	if (Math.abs(bgY - txtY) < deltaYmin) return 0;
+
+	const normBG = 0.56,
+		normTXT = 0.57,
+		revTXT = 0.62,
+		revBG = 0.65,
+		scaleBoW = 1.14,
+		scaleWoB = 1.14,
+		loBoWoffset = 0.027,
+		loWoBoffset = 0.027,
+		loClip = 0.1;
+
+	let SAPC, outputContrast;
+	if (bgY > txtY) {
+		// BoW — light background, dark text (positive Lc).
+		SAPC = (Math.pow(bgY, normBG) - Math.pow(txtY, normTXT)) * scaleBoW;
+		outputContrast = SAPC < loClip ? 0 : SAPC - loBoWoffset;
+	} else {
+		// WoB — dark background, light text (negative Lc).
+		SAPC = (Math.pow(bgY, revBG) - Math.pow(txtY, revTXT)) * scaleWoB;
+		outputContrast = SAPC > -loClip ? 0 : SAPC + loWoBoffset;
+	}
+
+	return outputContrast * 100;
 };
 
 export default tincture;
