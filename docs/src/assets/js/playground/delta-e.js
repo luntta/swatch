@@ -5,14 +5,35 @@
 import swatch from "../swatch.js";
 import { subscribe, getRoot } from "./state.js";
 
-const QUALITY = [
-	{ max: 1, label: "Imperceptible" },
-	{ max: 2, label: "Just noticeable" },
-	{ max: 5, label: "Perceptible" },
-	{ max: 10, label: "Easily distinguishable" },
-	{ max: 50, label: "Different colors" },
-	{ max: Infinity, label: "Opposite" },
-];
+// Quality bands per ΔE mode. ΔE 76 and CIEDE2000 live on a 0..100 scale;
+// ΔE OK (Euclidean in OKLab) lives on roughly 0..1 — white→black is 1.0
+// and ~0.01 is one JND. The OK thresholds are the 76/2000 ones ÷ 100.
+const QUALITY = {
+	"76": [
+		{ max: 1, label: "Imperceptible" },
+		{ max: 2, label: "Just noticeable" },
+		{ max: 5, label: "Perceptible" },
+		{ max: 10, label: "Easily distinguishable" },
+		{ max: 50, label: "Different colors" },
+		{ max: Infinity, label: "Opposite" },
+	],
+	"2000": [
+		{ max: 1, label: "Imperceptible" },
+		{ max: 2, label: "Just noticeable" },
+		{ max: 5, label: "Perceptible" },
+		{ max: 10, label: "Easily distinguishable" },
+		{ max: 50, label: "Different colors" },
+		{ max: Infinity, label: "Opposite" },
+	],
+	ok: [
+		{ max: 0.01, label: "Imperceptible" },
+		{ max: 0.02, label: "Just noticeable" },
+		{ max: 0.05, label: "Perceptible" },
+		{ max: 0.1, label: "Easily distinguishable" },
+		{ max: 0.5, label: "Different colors" },
+		{ max: Infinity, label: "Opposite" },
+	],
+};
 
 class DeltaE extends HTMLElement {
 	connectedCallback() {
@@ -72,8 +93,11 @@ class DeltaE extends HTMLElement {
 		} catch (e) {
 			de = 0;
 		}
-		this.value.textContent = de.toFixed(2);
-		const q = QUALITY.find((q) => de < q.max);
+		// ΔE OK is two orders of magnitude smaller than 76/2000, so it
+		// needs more decimals to read meaningfully.
+		const digits = this.mode === "ok" ? 3 : 2;
+		this.value.textContent = de.toFixed(digits);
+		const q = QUALITY[this.mode].find((q) => de < q.max);
 		this.label.textContent = q ? q.label : "";
 	}
 }
