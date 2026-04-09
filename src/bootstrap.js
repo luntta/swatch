@@ -30,7 +30,10 @@ import {
 	_bindMix,
 	_bindDeltaE,
 	_bindNaming,
-	_bindTemperature
+	_bindTemperature,
+	_bindAccessibility,
+	_bindApca,
+	_bindCvd
 } from "./core/swatch-class.js";
 import { getChannel, setChannel } from "./operations/channels.js";
 import { inGamut, toGamut } from "./operations/gamut.js";
@@ -50,6 +53,14 @@ import {
 import { name, toName, listNamedColors } from "./operations/naming.js";
 import { temperature, kelvin } from "./operations/temperature.js";
 import { random } from "./operations/random.js";
+import * as accessibility from "./operations/accessibility.js";
+import { apcaContrast } from "./operations/apca.js";
+import * as cvd from "./operations/cvd.js";
+import {
+	checkPalette,
+	nearestDistinguishable,
+	mostReadable
+} from "./operations/palette.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
@@ -69,6 +80,19 @@ _bindDeltaE({
 _bindNaming({ name, toName, listNamedColors });
 _bindTemperature({ kelvin });
 
+_bindAccessibility(accessibility);
+_bindApca({ apcaContrast });
+_bindCvd(cvd);
+
 // Statics on the factory function.
 swatch.temperature = temperature;
 swatch.random = random;
+swatch.contrast = accessibility.contrast;
+swatch.isReadable = accessibility.isReadable;
+swatch.ensureContrast = accessibility.ensureContrast;
+swatch.apcaContrast = apcaContrast;
+swatch.simulate = (c, type, opts) => cvd.simulate(c, type, opts);
+swatch.daltonize = (c, type, opts) => cvd.daltonize(c, type, opts);
+swatch.checkPalette = checkPalette;
+swatch.nearestDistinguishable = nearestDistinguishable;
+swatch.mostReadable = mostReadable;

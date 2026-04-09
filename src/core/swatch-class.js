@@ -290,6 +290,39 @@ export class Swatch {
 	temperature() {
 		return _temperature.kelvin(this);
 	}
+
+	// ─── Accessibility ─────────────────────────────────────────────────
+
+	luminance() {
+		return _accessibility.luminance(this);
+	}
+
+	contrast(other) {
+		return _accessibility.contrast(this, other);
+	}
+
+	isReadable(other, opts) {
+		return _accessibility.isReadable(this, other, opts);
+	}
+
+	ensureContrast(other, opts) {
+		return _accessibility.ensureContrast(this, other, opts);
+	}
+
+	apcaContrast(other) {
+		// Receiver is the text; `other` is the background.
+		return _apca.apcaContrast(this, other);
+	}
+
+	// ─── CVD ───────────────────────────────────────────────────────────
+
+	simulate(type, opts) {
+		return _cvd.simulate(this, type, opts);
+	}
+
+	daltonize(type, opts) {
+		return _cvd.daltonize(this, type, opts);
+	}
 }
 
 let _getChannel = null;
@@ -334,6 +367,21 @@ export function _bindNaming(fns) {
 let _temperature = {};
 export function _bindTemperature(fns) {
 	_temperature = fns;
+}
+
+let _accessibility = {};
+export function _bindAccessibility(fns) {
+	_accessibility = fns;
+}
+
+let _apca = {};
+export function _bindApca(fns) {
+	_apca = fns;
+}
+
+let _cvd = {};
+export function _bindCvd(fns) {
+	_cvd = fns;
 }
 
 // Factory / invocation without `new`.
