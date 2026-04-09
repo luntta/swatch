@@ -123,6 +123,30 @@ export function swatchFromState(state) {
 	return new Swatch(state);
 }
 
+// Build a Swatch from any recognized input form (string, object literal,
+// or existing Swatch). Throws on unrecognized input. Lazily imported to
+// avoid a circular dep between Swatch and the parser dispatcher.
+let _parseInput = null;
+export function _bindParseInput(fn) {
+	_parseInput = fn;
+}
+
+export function swatch(input) {
+	if (input instanceof Swatch) return input;
+	if (!_parseInput) {
+		throw new Error(
+			"swatch(): parser not initialized. Import src/bootstrap.js first."
+		);
+	}
+	const state = _parseInput(input);
+	if (!state) {
+		throw new Error(
+			"swatch(): could not parse input: " + JSON.stringify(input)
+		);
+	}
+	return new Swatch(state);
+}
+
 // Helper for tests: is a given id registered?
 export function knownSpaces() {
 	return listSpaces();
