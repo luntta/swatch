@@ -2,13 +2,15 @@
 //
 //   deltaE(a, b, mode)
 //     "76"   — CIE76 euclidean distance in CIE Lab D65
+//     "94"   — CIE94 (graphic arts, kL=kC=kH=1, K1=0.045, K2=0.015)
 //     "2000" — CIEDE2000 (Sharma, Wu, Dalal 2005), kL = kC = kH = 1
+//     "cmc"  — CMC l:c with default l=1 c=1; override via opts
+//              (pass as { mode: 'cmc', l, c }, or deltaE(a,b,'cmc',opts))
+//     "hyab" — Abasi/Fairchild HyAB for large color differences
 //     "ok"   — euclidean distance in OKLab
 //
-// More metrics (94, cmc, hyab) will be added in Phase 15.
-//
-// All metrics operate on D65 Lab (matching the v2 behavior and the
-// colorjs.io convention).
+// All Lab-based metrics operate on D65 Lab (matching v2 behavior
+// and the colorjs.io convention).
 
 import { Swatch, swatch } from "../core/swatch-class.js";
 
@@ -124,9 +126,82 @@ export function deltaE2000(a, b) {
 	);
 }
 
-export function deltaE(a, b, mode = "2000") {
+// CIE94 — graphic-arts application (textiles uses different constants).
+// kL = kC = kH = 1, K1 = 0.045, K2 = 0.015.
+// Symmetric by using sample 1 as reference (v2 convention).
+export function deltaE94(a, b) {
+	const [L1, a1, b1] = lab(toSwatch(a));
+	const [L2, a2, b2] = lab(toSwatch(b));
+
+	const C1 = Math.hypot(a1, b1);
+	const C2 = Math.hypot(a2, b2);
+
+	const dL = L1 - L2;
+	const dC = C1 - C2;
+	const da = a1 - a2;
+	const db = b1 - b2;
+	// dH² = da² + db² − dC². Guard against tiny negatives from rounding.
+	const dH2 = Math.max(da * da + db * db - dC * dC, 0);
+
+	const SL = 1;
+	const SC = 1 + 0.045 * C1;
+	const SH = 1 + 0.015 * C1;
+
+	const termL = dL / SL;
+	const termC = dC / SC;
+	// termH² = dH² / SH²
+	return Math.sqrt(termL * termL + termC * termC + dH2 / (SH * SH));
+}
+
+// CMC l:c — sample 1 is reference. Defaults l=1 c=1 ("acceptability");
+// pass l=2 for "perceptibility".
+export function deltaECMC(a, b, { l = 1, c = 1 } = {}) {
+	const [L1, a1, b1] = lab(toSwatch(a));
+	const [L2, a2, b2] = lab(toSwatch(b));
+	const deg = Math.PI / 180;
+
+	const C1 = Math.hypot(a1, b1);
+	const C2 = Math.hypot(a2, b2);
+
+	let H1 = (Math.atan2(b1, a1) * 180) / Math.PI;
+	if (H1 < 0) H1 += 360;
+
+	const dL = L1 - L2;
+	const dC = C1 - C2;
+	const da = a1 - a2;
+	const db = b1 - b2;
+	const dH2 = Math.max(da * da + db * db - dC * dC, 0);
+
+	const SL = L1 < 16 ? 0.511 : (0.040975 * L1) / (1 + 0.01765 * L1);
+	const SC = (0.0638 * C1) / (1 + 0.0131 * C1) + 0.638;
+
+	const F = Math.sqrt(Math.pow(C1, 4) / (Math.pow(C1, 4) + 1900));
+	const T =
+		H1 >= 164 && H1 <= 345
+			? 0.56 + Math.abs(0.2 * Math.cos((H1 + 168) * deg))
+			: 0.36 + Math.abs(0.4 * Math.cos((H1 + 35) * deg));
+	const SH = SC * (F * T + 1 - F);
+
+	const termL = dL / (l * SL);
+	const termC = dC / (c * SC);
+	return Math.sqrt(termL * termL + termC * termC + dH2 / (SH * SH));
+}
+
+// HyAB — Abasi & Fairchild (2020), "Distancing colour signals from the
+// visual system." L distance plus euclidean (a,b) distance; performs
+// better than ΔE2000 for large color differences.
+export function deltaEHyAB(a, b) {
+	const [L1, a1, b1] = lab(toSwatch(a));
+	const [L2, a2, b2] = lab(toSwatch(b));
+	return Math.abs(L1 - L2) + Math.hypot(a1 - a2, b1 - b2);
+}
+
+export function deltaE(a, b, mode = "2000", opts) {
 	if (mode === "76") return deltaE76(a, b);
+	if (mode === "94") return deltaE94(a, b);
 	if (mode === "2000") return deltaE2000(a, b);
+	if (mode === "cmc") return deltaECMC(a, b, opts);
+	if (mode === "hyab") return deltaEHyAB(a, b);
 	if (mode === "ok") return deltaEOK(a, b);
 	throw new Error(`deltaE: unknown mode "${mode}"`);
 }

@@ -271,8 +271,8 @@ export class Swatch {
 
 	// ─── ΔE ────────────────────────────────────────────────────────────
 
-	deltaE(other, mode) {
-		return _deltaE.deltaE(this, other, mode);
+	deltaE(other, mode, opts) {
+		return _deltaE.deltaE(this, other, mode, opts);
 	}
 
 	// ─── Naming ────────────────────────────────────────────────────────

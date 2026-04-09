@@ -38,7 +38,15 @@ import * as manipulation from "./operations/manipulation.js";
 import * as tintShade from "./operations/tint-shade.js";
 import { mix, average } from "./operations/mix.js";
 import { blend } from "./operations/blend.js";
-import { deltaE, deltaE76, deltaE2000, deltaEOK } from "./operations/deltaE.js";
+import {
+	deltaE,
+	deltaE76,
+	deltaE94,
+	deltaE2000,
+	deltaECMC,
+	deltaEHyAB,
+	deltaEOK
+} from "./operations/deltaE.js";
 import { name, toName, listNamedColors } from "./operations/naming.js";
 import { temperature, kelvin } from "./operations/temperature.js";
 import { random } from "./operations/random.js";
@@ -49,7 +57,15 @@ _bindGamut(inGamut, toGamut);
 _bindManipulation(manipulation);
 _bindTintShade(tintShade);
 _bindMix({ mix, average, blend });
-_bindDeltaE({ deltaE, deltaE76, deltaE2000, deltaEOK });
+_bindDeltaE({
+	deltaE,
+	deltaE76,
+	deltaE94,
+	deltaE2000,
+	deltaECMC,
+	deltaEHyAB,
+	deltaEOK
+});
 _bindNaming({ name, toName, listNamedColors });
 _bindTemperature({ kelvin });
 
