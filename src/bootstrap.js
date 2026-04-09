@@ -24,13 +24,16 @@ import {
 	_bindParseInput,
 	_bindChannels,
 	_bindGamut,
-	_bindManipulation
+	_bindManipulation,
+	_bindTintShade
 } from "./core/swatch-class.js";
 import { getChannel, setChannel } from "./operations/channels.js";
 import { inGamut, toGamut } from "./operations/gamut.js";
 import * as manipulation from "./operations/manipulation.js";
+import * as tintShade from "./operations/tint-shade.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
 _bindGamut(inGamut, toGamut);
 _bindManipulation(manipulation);
+_bindTintShade(tintShade);

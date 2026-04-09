@@ -80,6 +80,28 @@ export class Swatch {
 		return new Swatch(cloneState(this._state));
 	}
 
+	// Structural equality with tolerance. Compares the same-space view of
+	// the other swatch against this swatch's native coords. Different source
+	// spaces will round-trip through conversion so visually-equivalent
+	// colors compare equal.
+	equals(other, epsilon = 1e-6) {
+		if (!(other instanceof Swatch)) return false;
+		const coords = other._getCoordsIn(this._state.space);
+		if (Math.abs(coords[0] - this._state.coords[0]) > epsilon) return false;
+		if (Math.abs(coords[1] - this._state.coords[1]) > epsilon) return false;
+		if (Math.abs(coords[2] - this._state.coords[2]) > epsilon) return false;
+		if (Math.abs(other.alpha - this._state.alpha) > epsilon) return false;
+		return true;
+	}
+
+	toJSON() {
+		return {
+			space: this._state.space,
+			coords: this.coords,
+			alpha: this._state.alpha
+		};
+	}
+
 	// ─── Foundation-space getters ──────────────────────────────────────
 	//
 	// These return plain objects in the natural channel layout of each space.
@@ -226,6 +248,18 @@ export class Swatch {
 	invert() {
 		return _manip.invert(this);
 	}
+
+	tint(amount) {
+		return _tintShade.tint(this, amount);
+	}
+
+	shade(amount) {
+		return _tintShade.shade(this, amount);
+	}
+
+	tone(amount) {
+		return _tintShade.tone(this, amount);
+	}
 }
 
 let _getChannel = null;
@@ -245,6 +279,11 @@ export function _bindGamut(inFn, toFn) {
 let _manip = {};
 export function _bindManipulation(fns) {
 	_manip = fns;
+}
+
+let _tintShade = {};
+export function _bindTintShade(fns) {
+	_tintShade = fns;
 }
 
 // Factory / invocation without `new`.
