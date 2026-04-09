@@ -118,6 +118,22 @@ export class Swatch {
 		return this._asObjectIn("hsl");
 	}
 
+	get displayP3() {
+		return this._asObjectIn("display-p3");
+	}
+
+	get rec2020() {
+		return this._asObjectIn("rec2020");
+	}
+
+	get a98() {
+		return this._asObjectIn("a98");
+	}
+
+	get prophoto() {
+		return this._asObjectIn("prophoto");
+	}
+
 	// ─── CSS serialization ─────────────────────────────────────────────
 
 	toString(opts) {

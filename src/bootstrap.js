@@ -3,6 +3,10 @@
 
 import "./spaces/xyz.js";
 import "./spaces/srgb.js";
+import "./spaces/display-p3.js";
+import "./spaces/rec2020.js";
+import "./spaces/a98.js";
+import "./spaces/prophoto.js";
 import "./spaces/lab.js";
 import "./spaces/lch.js";
 import "./spaces/oklab.js";
