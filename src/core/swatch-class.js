@@ -260,6 +260,14 @@ export class Swatch {
 	tone(amount) {
 		return _tintShade.tone(this, amount);
 	}
+
+	mix(other, amount, opts) {
+		return _mix.mix(this, other, amount, opts);
+	}
+
+	blend(other, mode) {
+		return _mix.blend(this, other, mode);
+	}
 }
 
 let _getChannel = null;
@@ -284,6 +292,11 @@ export function _bindManipulation(fns) {
 let _tintShade = {};
 export function _bindTintShade(fns) {
 	_tintShade = fns;
+}
+
+let _mix = {};
+export function _bindMix(fns) {
+	_mix = fns;
 }
 
 // Factory / invocation without `new`.
