@@ -9,6 +9,8 @@ import "./spaces/oklab.js";
 import "./spaces/oklch.js";
 import "./spaces/hsl.js";
 
+import "./parse/css.js";
+
 import { parseInput } from "./parse/index.js";
 import { _bindParseInput } from "./core/swatch-class.js";
 

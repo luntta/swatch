@@ -13,6 +13,7 @@
 
 import { makeState, cloneState } from "./state.js";
 import { convert, getSpace, listSpaces } from "./registry.js";
+import { formatCss } from "../format/css.js";
 
 export class Swatch {
 	constructor(state) {
@@ -115,6 +116,16 @@ export class Swatch {
 
 	get hsl() {
 		return this._asObjectIn("hsl");
+	}
+
+	// ─── CSS serialization ─────────────────────────────────────────────
+
+	toString(opts) {
+		return formatCss(this, opts);
+	}
+
+	toCss(opts) {
+		return formatCss(this, opts);
 	}
 }
 
