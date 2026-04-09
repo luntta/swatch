@@ -127,6 +127,25 @@ export class Swatch {
 	toCss(opts) {
 		return formatCss(this, opts);
 	}
+
+	// ─── Channel get/set ───────────────────────────────────────────────
+	//
+	// Late-bound to avoid circulars with src/operations/channels.js.
+
+	get(path) {
+		return _getChannel(this, path);
+	}
+
+	set(path, value) {
+		return _setChannel(this, path, value);
+	}
+}
+
+let _getChannel = null;
+let _setChannel = null;
+export function _bindChannels(getFn, setFn) {
+	_getChannel = getFn;
+	_setChannel = setFn;
 }
 
 // Factory / invocation without `new`.

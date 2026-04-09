@@ -12,6 +12,8 @@ import "./spaces/hsl.js";
 import "./parse/css.js";
 
 import { parseInput } from "./parse/index.js";
-import { _bindParseInput } from "./core/swatch-class.js";
+import { _bindParseInput, _bindChannels } from "./core/swatch-class.js";
+import { getChannel, setChannel } from "./operations/channels.js";
 
 _bindParseInput(parseInput);
+_bindChannels(getChannel, setChannel);
