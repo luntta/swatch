@@ -1,39 +1,115 @@
-// Type definitions for swatch 2.0
+// Type definitions for swatch 3.0
 // Project: https://github.com/luntta/swatch
 
-export interface RGB {
+// ─── Space names ──────────────────────────────────────────────────────
+
+export type SpaceId =
+	| "srgb"
+	| "srgb-linear"
+	| "display-p3"
+	| "rec2020"
+	| "a98"
+	| "prophoto"
+	| "xyz"
+	| "xyz-d65"
+	| "xyz-d50"
+	| "lab"
+	| "lab-d50"
+	| "lch"
+	| "lch-d50"
+	| "oklab"
+	| "oklch"
+	| "hsl"
+	| "hsv"
+	| "hwb"
+	| "cmyk"
+	| "luv"
+	| "hsluv";
+
+// ─── Channel object shapes (returned by the per-space getters) ─────
+
+export interface SrgbChannels {
 	r: number;
 	g: number;
 	b: number;
-	a?: number;
 }
 
-export interface HSL {
-	h: number;
-	s: number;
-	l: number;
-	a?: number;
-}
-
-export interface XYZ {
+export interface XyzChannels {
 	x: number;
 	y: number;
 	z: number;
 }
 
-export interface Lab {
+export interface LabChannels {
 	l: number;
 	a: number;
 	b: number;
 }
 
-export interface LCh {
+export interface LchChannels {
 	l: number;
 	c: number;
 	h: number;
 }
 
-export type ColorInput = string | RGB | HSL | Swatch;
+export interface HslChannels {
+	h: number;
+	s: number;
+	l: number;
+}
+
+export interface HsvChannels {
+	h: number;
+	s: number;
+	v: number;
+}
+
+export interface HwbChannels {
+	h: number;
+	w: number;
+	b: number;
+}
+
+export interface CmykChannels {
+	c: number;
+	m: number;
+	y: number;
+	k: number;
+}
+
+export interface HsluvChannels {
+	h: number;
+	s: number;
+	l: number;
+}
+
+export interface LuvChannels {
+	l: number;
+	u: number;
+	v: number;
+}
+
+// ─── Input forms ──────────────────────────────────────────────────────
+
+export interface StateInput {
+	space: SpaceId;
+	coords: [number, number, number];
+	alpha?: number;
+}
+
+export type ColorInput =
+	| string
+	| Swatch
+	| StateInput
+	| (Partial<SrgbChannels> & { a?: number })
+	| (Partial<HslChannels> & { a?: number })
+	| (Partial<LabChannels> & { alpha?: number })
+	| (Partial<LchChannels> & { alpha?: number })
+	| (Partial<HsvChannels> & { a?: number })
+	| (Partial<HwbChannels> & { a?: number })
+	| (Partial<CmykChannels> & { alpha?: number });
+
+// ─── Options bags ─────────────────────────────────────────────────────
 
 export type CVDType =
 	| "protan"
@@ -48,26 +124,15 @@ export type CVDType =
 	| "achroma"
 	| "achromatopsia";
 
-export type MixSpace = "oklab" | "lab" | "linear" | "rgb" | "hsl";
+export type DeltaEMode = "76" | "94" | "2000" | "cmc" | "hyab" | "ok";
 
-export type DeltaEMode = "76" | "2000" | "ok";
+export interface DeltaECmcOptions {
+	l?: number;
+	c?: number;
+}
 
 export type WCAGLevel = "AA" | "AAA";
 export type WCAGSize = "normal" | "large" | "ui";
-
-export interface SimulateOptions {
-	/** Severity 0..1 (default 1.0 = full dichromacy). */
-	severity?: number;
-}
-
-export interface DaltonizeOptions {
-	/** Severity 0..1 (default 1.0). */
-	severity?: number;
-}
-
-export interface MixOptions {
-	space?: MixSpace;
-}
 
 export interface IsReadableOptions {
 	level?: WCAGLevel;
@@ -80,11 +145,65 @@ export interface EnsureContrastOptions {
 	step?: number;
 }
 
-export interface EqualsOptions {
-	/** Comparison space. Default "rgb". */
-	space?: "rgb" | "hex" | "hsl" | "lab" | "oklab";
-	/** Tolerance in the chosen space (Delta E for lab/oklab). Default 0. */
-	tolerance?: number;
+export interface MixOptions {
+	space?: SpaceId;
+}
+
+export interface SimulateOptions {
+	severity?: number;
+}
+
+export interface DaltonizeOptions {
+	severity?: number;
+}
+
+export interface ManipulationOptions {
+	/** Skip sRGB gamut mapping after the op. Default true (mapping on). */
+	gamut?: boolean;
+}
+
+export interface GamutOptions {
+	space?: SpaceId;
+	method?: "clip" | "css4" | "oklch-chroma";
+}
+
+export type BlendMode =
+	| "normal"
+	| "multiply"
+	| "screen"
+	| "darken"
+	| "lighten"
+	| "overlay"
+	| "color-dodge"
+	| "color-burn"
+	| "hard-light"
+	| "soft-light"
+	| "difference"
+	| "exclusion";
+
+export type FormatName =
+	| "hex"
+	| "hex-alpha"
+	| "rgb"
+	| "rgb-legacy"
+	| "hsl"
+	| "hsl-legacy"
+	| "hwb"
+	| "lab"
+	| "lch"
+	| "oklab"
+	| "oklch"
+	| "color";
+
+export interface FormatOptions {
+	format?: FormatName;
+	precision?: number;
+}
+
+export interface NameResult {
+	name: string;
+	hex: string;
+	deltaE: number;
 }
 
 export interface CheckPaletteOptions {
@@ -109,116 +228,190 @@ export interface PaletteReport {
 }
 
 export interface NearestDistinguishableOptions extends CheckPaletteOptions {
-	/** HSL lightness step in percent. Default 2. */
 	step?: number;
 }
 
 export interface MostReadableOptions extends IsReadableOptions {
-	/** Fall back to pure black/white when no candidate passes. Default true. */
 	includeFallback?: boolean;
 }
 
-export interface SwatchJSON {
-	hex: string;
-	rgb: RGB;
-	hsl: HSL;
-	isValid: boolean;
-	format?: string;
+export interface RandomRange {
+	hue?: number | [number, number];
+	lightness?: number | [number, number];
+	chroma?: number | [number, number];
+	saturation?: number | [number, number];
 }
+
+export interface RandomOptions extends RandomRange {
+	space?: "oklch" | "hsl";
+	seed?: number;
+}
+
+export interface CubehelixOptions {
+	start?: number;
+	rotations?: number;
+	hue?: number;
+	gamma?: number;
+	lightness?: [number, number];
+}
+
+// ─── Scale ────────────────────────────────────────────────────────────
+
+export interface Scale {
+	(t: number): Swatch;
+	colors(n: number): Swatch[];
+	colors(n: number, format: FormatName): string[];
+	domain(): [number, number];
+	domain(d: [number, number]): Scale;
+	classes(): number[] | null;
+	classes(n: number | number[] | null): Scale;
+	padding(): [number, number];
+	padding(p: number | [number, number]): Scale;
+	gamma(): number;
+	gamma(g: number): Scale;
+	mode(): SpaceId;
+	mode(space: SpaceId): Scale;
+	correctLightness(enable?: boolean): Scale;
+	cache(): boolean;
+	cache(on: boolean): Scale;
+}
+
+// ─── Swatch class ─────────────────────────────────────────────────────
 
 export interface Swatch {
-	// ─── Core state ──────────────────────────────────────────────────
-	readonly rgb: RGB;
-	readonly hsl: HSL;
-	readonly hex: string;
-	readonly isValid: boolean;
-	readonly hasAlpha: boolean;
+	readonly space: SpaceId;
+	readonly alpha: number;
+	readonly coords: [number, number, number];
 
-	// ─── Accessors / formatters ─────────────────────────────────────
-	toRgb(): RGB;
-	toRgbString(): string;
-	toHsl(): HSL;
-	toHslString(): string;
-	toHex(): string;
-	toJSON(): SwatchJSON;
+	// Per-space getters.
+	readonly srgb: SrgbChannels;
+	readonly linearSrgb: SrgbChannels;
+	readonly xyz: XyzChannels;
+	readonly lab: LabChannels;
+	readonly lch: LchChannels;
+	readonly oklab: LabChannels;
+	readonly oklch: LchChannels;
+	readonly hsl: HslChannels;
+	readonly hsv: HsvChannels;
+	readonly hwb: HwbChannels;
+	readonly cmyk: CmykChannels;
+	readonly hsluv: HsluvChannels;
+	readonly luv: LuvChannels;
+	readonly displayP3: SrgbChannels;
+	readonly rec2020: SrgbChannels;
+	readonly a98: SrgbChannels;
+	readonly prophoto: SrgbChannels;
+
+	// Core plumbing.
+	to(space: SpaceId): Swatch;
 	clone(): Swatch;
-	equals(other: ColorInput, options?: EqualsOptions): boolean;
+	equals(other: Swatch, epsilon?: number): boolean;
+	toJSON(): { space: SpaceId; coords: [number, number, number]; alpha: number };
+	toString(opts?: FormatOptions): string;
+	toCss(opts?: FormatOptions): string;
 
-	// ─── Perceptual spaces ──────────────────────────────────────────
-	toLinearRGB(): RGB;
-	toXYZ(): XYZ;
-	toLab(): Lab;
-	toLch(): LCh;
-	toOklab(): Lab;
-	toOklch(): LCh;
-	deltaE(other: ColorInput, mode?: DeltaEMode): number;
+	// Channel get/set.
+	get(path: string): number;
+	set(path: string, value: number): Swatch;
 
-	// ─── Manipulation ───────────────────────────────────────────────
-	lighten(amount?: number): Swatch;
-	darken(amount?: number): Swatch;
-	saturate(amount?: number): Swatch;
-	desaturate(amount?: number): Swatch;
-	spin(degrees: number): Swatch;
-	greyscale(): Swatch;
-	complement(): Swatch;
+	// Gamut.
+	inGamut(space?: SpaceId, opts?: { epsilon?: number }): boolean;
+	toGamut(opts?: GamutOptions): Swatch;
+
+	// Manipulation (OKLCh-based).
+	lighten(amount?: number, opts?: ManipulationOptions): Swatch;
+	darken(amount?: number, opts?: ManipulationOptions): Swatch;
+	saturate(amount?: number, opts?: ManipulationOptions): Swatch;
+	desaturate(amount?: number, opts?: ManipulationOptions): Swatch;
+	spin(degrees: number, opts?: ManipulationOptions): Swatch;
+	greyscale(opts?: ManipulationOptions): Swatch;
+	complement(opts?: ManipulationOptions): Swatch;
 	invert(): Swatch;
-	mix(other: ColorInput, amount?: number, space?: MixSpace): Swatch;
 
-	// ─── Harmonies ──────────────────────────────────────────────────
-	complementary(): Swatch[];
-	triad(): Swatch[];
-	tetrad(): Swatch[];
-	splitComplement(): Swatch[];
-	analogous(n?: number, slice?: number): Swatch[];
-	monochromatic(n?: number): Swatch[];
+	// Tint/shade/tone.
+	tint(amount?: number): Swatch;
+	shade(amount?: number): Swatch;
+	tone(amount?: number): Swatch;
 
-	// ─── Colorblind story ───────────────────────────────────────────
-	simulate(type: CVDType, options?: SimulateOptions): Swatch;
+	// Mix / blend.
+	mix(other: ColorInput, amount?: number, opts?: MixOptions): Swatch;
+	blend(other: ColorInput, mode: BlendMode): Swatch;
+
+	// ΔE / naming.
+	deltaE(other: ColorInput, mode?: DeltaEMode, opts?: DeltaECmcOptions): number;
+	name(): NameResult;
+	toName(): string;
+
+	// Temperature (inverse).
+	temperature(): number;
+
+	// Accessibility.
+	luminance(): number;
+	contrast(other: ColorInput): number;
+	isReadable(other: ColorInput, opts?: IsReadableOptions): boolean;
+	ensureContrast(other: ColorInput, opts?: EnsureContrastOptions): Swatch;
+	apcaContrast(background: ColorInput): number;
+
+	// CVD.
+	simulate(type: CVDType, opts?: SimulateOptions): Swatch;
 	daltonize(
 		type: Exclude<CVDType, "achroma" | "achromatopsia">,
-		options?: DaltonizeOptions
+		opts?: DaltonizeOptions
 	): Swatch;
-
-	// ─── Accessibility ──────────────────────────────────────────────
-	contrast(other: ColorInput): number;
-	isReadable(other: ColorInput, options?: IsReadableOptions): boolean;
-	ensureContrast(
-		other: ColorInput,
-		options?: EnsureContrastOptions
-	): Swatch;
-
-	// ─── Legacy/raw WCAG helpers ────────────────────────────────────
-	getLuminance(rgb?: RGB): number;
-	getContrast(rgb1: RGB, rgb2?: RGB): number;
 }
 
-export interface SwatchConstructor {
-	(color: ColorInput): Swatch;
-	new (color: ColorInput): Swatch;
+// ─── Factory / statics ────────────────────────────────────────────────
 
-	/** Pairwise Delta E analysis across a palette, optionally under CVD. */
+export interface SwatchFactory {
+	(input: ColorInput): Swatch;
+
+	// Temperature.
+	temperature(kelvin: number): Swatch;
+
+	// Random.
+	random(opts?: RandomOptions): Swatch;
+
+	// Accessibility.
+	contrast(a: ColorInput, b: ColorInput): number;
+	isReadable(a: ColorInput, b: ColorInput, opts?: IsReadableOptions): boolean;
+	ensureContrast(
+		a: ColorInput,
+		b: ColorInput,
+		opts?: EnsureContrastOptions
+	): Swatch;
+	apcaContrast(text: ColorInput, background: ColorInput): number;
+
+	// CVD.
+	simulate(c: ColorInput, type: CVDType, opts?: SimulateOptions): Swatch;
+	daltonize(
+		c: ColorInput,
+		type: Exclude<CVDType, "achroma" | "achromatopsia">,
+		opts?: DaltonizeOptions
+	): Swatch;
+
+	// Palette helpers.
 	checkPalette(
 		palette: ColorInput[],
-		options?: CheckPaletteOptions
+		opts?: CheckPaletteOptions
 	): PaletteReport;
-
-	/** Nudge `target` until it is distinguishable from `against`. */
 	nearestDistinguishable(
 		target: ColorInput,
 		against: ColorInput,
-		options?: NearestDistinguishableOptions
+		opts?: NearestDistinguishableOptions
 	): Swatch;
-
-	/** Pick the best-contrast readable foreground from candidates. */
 	mostReadable(
 		background: ColorInput,
 		candidates: ColorInput[],
-		options?: MostReadableOptions
+		opts?: MostReadableOptions
 	): Swatch;
 
-	/** APCA (WCAG 3 draft) lightness contrast Lc. */
-	apcaContrast(text: ColorInput, background: ColorInput): number;
+	// Scales.
+	scale(stops: ColorInput[] | ((t: number) => Swatch) | string): Scale;
+	bezier(colors: ColorInput[]): (t: number) => Swatch;
+	cubehelix(opts?: CubehelixOptions): (t: number) => Swatch;
+	palettes(): string[];
 }
 
-declare const swatch: SwatchConstructor;
+declare const swatch: SwatchFactory;
 export default swatch;
+export { swatch };
