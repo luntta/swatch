@@ -41,6 +41,7 @@ import { blend } from "./operations/blend.js";
 import { deltaE, deltaE76, deltaE2000, deltaEOK } from "./operations/deltaE.js";
 import { name, toName, listNamedColors } from "./operations/naming.js";
 import { temperature, kelvin } from "./operations/temperature.js";
+import { random } from "./operations/random.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
@@ -54,3 +55,4 @@ _bindTemperature({ kelvin });
 
 // Statics on the factory function.
 swatch.temperature = temperature;
+swatch.random = random;
