@@ -284,6 +284,12 @@ export class Swatch {
 	toName() {
 		return _naming.toName(this);
 	}
+
+	// ─── Temperature ───────────────────────────────────────────────────
+
+	temperature() {
+		return _temperature.kelvin(this);
+	}
 }
 
 let _getChannel = null;
@@ -323,6 +329,11 @@ export function _bindDeltaE(fns) {
 let _naming = {};
 export function _bindNaming(fns) {
 	_naming = fns;
+}
+
+let _temperature = {};
+export function _bindTemperature(fns) {
+	_temperature = fns;
 }
 
 // Factory / invocation without `new`.
