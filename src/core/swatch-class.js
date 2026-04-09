@@ -268,6 +268,22 @@ export class Swatch {
 	blend(other, mode) {
 		return _mix.blend(this, other, mode);
 	}
+
+	// ─── ΔE ────────────────────────────────────────────────────────────
+
+	deltaE(other, mode) {
+		return _deltaE.deltaE(this, other, mode);
+	}
+
+	// ─── Naming ────────────────────────────────────────────────────────
+
+	name(opts) {
+		return _naming.name(this, opts);
+	}
+
+	toName() {
+		return _naming.toName(this);
+	}
 }
 
 let _getChannel = null;
@@ -297,6 +313,16 @@ export function _bindTintShade(fns) {
 let _mix = {};
 export function _bindMix(fns) {
 	_mix = fns;
+}
+
+let _deltaE = {};
+export function _bindDeltaE(fns) {
+	_deltaE = fns;
+}
+
+let _naming = {};
+export function _bindNaming(fns) {
+	_naming = fns;
 }
 
 // Factory / invocation without `new`.
