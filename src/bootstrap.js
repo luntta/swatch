@@ -61,6 +61,9 @@ import {
 	nearestDistinguishable,
 	mostReadable
 } from "./operations/palette.js";
+import { scale } from "./scale/index.js";
+import { bezier, cubehelix } from "./scale/interpolators.js";
+import { listPalettes } from "./palettes/index.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
@@ -96,3 +99,7 @@ swatch.daltonize = (c, type, opts) => cvd.daltonize(c, type, opts);
 swatch.checkPalette = checkPalette;
 swatch.nearestDistinguishable = nearestDistinguishable;
 swatch.mostReadable = mostReadable;
+swatch.scale = scale;
+swatch.bezier = bezier;
+swatch.cubehelix = cubehelix;
+swatch.palettes = listPalettes;
