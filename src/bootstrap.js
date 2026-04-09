@@ -12,6 +12,10 @@ import "./spaces/lch.js";
 import "./spaces/oklab.js";
 import "./spaces/oklch.js";
 import "./spaces/hsl.js";
+import "./spaces/hsv.js";
+import "./spaces/hwb.js";
+import "./spaces/cmyk.js";
+import "./spaces/hsluv.js";
 
 import "./parse/css.js";
 

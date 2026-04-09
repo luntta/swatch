@@ -134,6 +134,33 @@ export class Swatch {
 		return this._asObjectIn("prophoto");
 	}
 
+	get hsv() {
+		return this._asObjectIn("hsv");
+	}
+
+	get hwb() {
+		return this._asObjectIn("hwb");
+	}
+
+	get cmyk() {
+		// CMYK is special: we derive K from max(R,G,B) for presentation.
+		const { r, g, b } = this.srgb;
+		const k = 1 - Math.max(r, g, b);
+		if (k >= 1 - 1e-12) return { c: 0, m: 0, y: 0, k: 1 };
+		const c = (1 - r - k) / (1 - k);
+		const m = (1 - g - k) / (1 - k);
+		const y = (1 - b - k) / (1 - k);
+		return { c, m, y, k };
+	}
+
+	get hsluv() {
+		return this._asObjectIn("hsluv");
+	}
+
+	get luv() {
+		return this._asObjectIn("luv");
+	}
+
 	// ─── CSS serialization ─────────────────────────────────────────────
 
 	toString(opts) {

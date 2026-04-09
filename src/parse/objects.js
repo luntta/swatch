@@ -101,5 +101,25 @@ export function parseObject(input) {
 		};
 	}
 
+	// CMYK object. Stored as the 3-channel "folded K" representation so it
+	// fits the canonical state shape; see src/spaces/cmyk.js.
+	if (
+		HAS.call(input, "c") &&
+		HAS.call(input, "m") &&
+		HAS.call(input, "y") &&
+		HAS.call(input, "k")
+	) {
+		const alpha = input.alpha != null ? +input.alpha : input.a != null ? +input.a : 1;
+		const c = +input.c;
+		const m = +input.m;
+		const y = +input.y;
+		const k = +input.k;
+		return {
+			space: "cmyk",
+			coords: [c + k - c * k, m + k - m * k, y + k - y * k],
+			alpha
+		};
+	}
+
 	return null;
 }
