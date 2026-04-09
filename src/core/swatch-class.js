@@ -96,6 +96,26 @@ export class Swatch {
 	get xyz() {
 		return this._asObjectIn("xyz");
 	}
+
+	get lab() {
+		return this._asObjectIn("lab");
+	}
+
+	get lch() {
+		return this._asObjectIn("lch");
+	}
+
+	get oklab() {
+		return this._asObjectIn("oklab");
+	}
+
+	get oklch() {
+		return this._asObjectIn("oklch");
+	}
+
+	get hsl() {
+		return this._asObjectIn("hsl");
+	}
 }
 
 // Factory / invocation without `new`.
