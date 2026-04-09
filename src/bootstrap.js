@@ -12,8 +12,14 @@ import "./spaces/hsl.js";
 import "./parse/css.js";
 
 import { parseInput } from "./parse/index.js";
-import { _bindParseInput, _bindChannels } from "./core/swatch-class.js";
+import {
+	_bindParseInput,
+	_bindChannels,
+	_bindGamut
+} from "./core/swatch-class.js";
 import { getChannel, setChannel } from "./operations/channels.js";
+import { inGamut, toGamut } from "./operations/gamut.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
+_bindGamut(inGamut, toGamut);

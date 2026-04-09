@@ -139,6 +139,16 @@ export class Swatch {
 	set(path, value) {
 		return _setChannel(this, path, value);
 	}
+
+	// ─── Gamut ─────────────────────────────────────────────────────────
+
+	inGamut(spaceId, opts) {
+		return _inGamut(this, spaceId, opts);
+	}
+
+	toGamut(opts) {
+		return _toGamut(this, opts);
+	}
 }
 
 let _getChannel = null;
@@ -146,6 +156,13 @@ let _setChannel = null;
 export function _bindChannels(getFn, setFn) {
 	_getChannel = getFn;
 	_setChannel = setFn;
+}
+
+let _inGamut = null;
+let _toGamut = null;
+export function _bindGamut(inFn, toFn) {
+	_inGamut = inFn;
+	_toGamut = toFn;
 }
 
 // Factory / invocation without `new`.
