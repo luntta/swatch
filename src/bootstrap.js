@@ -23,11 +23,14 @@ import { parseInput } from "./parse/index.js";
 import {
 	_bindParseInput,
 	_bindChannels,
-	_bindGamut
+	_bindGamut,
+	_bindManipulation
 } from "./core/swatch-class.js";
 import { getChannel, setChannel } from "./operations/channels.js";
 import { inGamut, toGamut } from "./operations/gamut.js";
+import * as manipulation from "./operations/manipulation.js";
 
 _bindParseInput(parseInput);
 _bindChannels(getChannel, setChannel);
 _bindGamut(inGamut, toGamut);
+_bindManipulation(manipulation);

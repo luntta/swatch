@@ -192,6 +192,40 @@ export class Swatch {
 	toGamut(opts) {
 		return _toGamut(this, opts);
 	}
+
+	// ─── Manipulation (OKLCh-based, late-bound) ────────────────────────
+
+	lighten(amount, opts) {
+		return _manip.lighten(this, amount, opts);
+	}
+
+	darken(amount, opts) {
+		return _manip.darken(this, amount, opts);
+	}
+
+	saturate(amount, opts) {
+		return _manip.saturate(this, amount, opts);
+	}
+
+	desaturate(amount, opts) {
+		return _manip.desaturate(this, amount, opts);
+	}
+
+	spin(degrees, opts) {
+		return _manip.spin(this, degrees, opts);
+	}
+
+	greyscale(opts) {
+		return _manip.greyscale(this, opts);
+	}
+
+	complement(opts) {
+		return _manip.complement(this, opts);
+	}
+
+	invert() {
+		return _manip.invert(this);
+	}
 }
 
 let _getChannel = null;
@@ -206,6 +240,11 @@ let _toGamut = null;
 export function _bindGamut(inFn, toFn) {
 	_inGamut = inFn;
 	_toGamut = toFn;
+}
+
+let _manip = {};
+export function _bindManipulation(fns) {
+	_manip = fns;
 }
 
 // Factory / invocation without `new`.
