@@ -1,7 +1,7 @@
 {
   "name": "swatch",
-  "version": "2.0.0-alpha.2",
-  "description": "A multi-purpose color library with first-class color blindness simulation.",
+  "version": "3.0.0",
+  "description": "A color library with first-class colorblind support, CSS Color 4 parsing, wide-gamut spaces, OKLCh manipulation, color scales, built-in palettes, blend modes, WCAG 2.1, and APCA.",
   "type": "module",
   "main": "./src/swatch.js",
   "module": "./src/swatch.js",
@@ -17,6 +17,8 @@
     "src",
     "types",
     "README.md",
+    "MIGRATING.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "directories": {

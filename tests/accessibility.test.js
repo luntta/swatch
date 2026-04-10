@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 describe("contrast (WCAG 2.1 ratio)", () => {
 	it("white on black = 21", () => {

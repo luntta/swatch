@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 // Helper: assert two RGB objects agree within ±tol per channel.
 function expectRgbClose(a, b, tol) {

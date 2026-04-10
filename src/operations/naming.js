@@ -20,9 +20,9 @@ import namedColors from "../data/named-colors.js";
 // meaning for naming purposes).
 //
 // We build the table at module-load time without going through the
-// swatch() factory, because bootstrap.js imports this module *before*
-// it installs the parser — using swatch() here would crash with
-// "parser not initialized".
+// swatch() factory, because the bootstrap sequence imports this module
+// *before* it installs the parser — using swatch() here would crash
+// with "parser not initialized".
 const ENTRIES = [];
 const SEEN_HEX = new Map();
 

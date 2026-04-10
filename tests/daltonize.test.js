@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 function expectRgbClose(a, b, tol) {
 	expect(Math.abs(a.r - b.r)).toBeLessThanOrEqual(tol);

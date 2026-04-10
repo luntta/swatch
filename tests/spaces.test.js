@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 describe("toLinearRGB: sRGB gamma removal", () => {
 	it("maps black to 0 and white to 1", () => {

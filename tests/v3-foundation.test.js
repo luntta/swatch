@@ -3,7 +3,7 @@ import { Swatch } from "../src/core/swatch-class.js";
 import { knownSpaces } from "../src/core/swatch-class.js";
 import "../src/spaces/xyz.js";
 import "../src/spaces/srgb.js";
-import v2swatch from "../src/swatch.js";
+import v2swatch from "../src/_v2-monolith.js";
 
 // Phase 1 foundation: canonical state, registry, sRGB + linear sRGB + XYZ.
 // These tests verify that the new Swatch class produces the same sRGB

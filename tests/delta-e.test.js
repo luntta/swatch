@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 describe("deltaE: identity", () => {
 	const modes = ["76", "2000", "ok"];

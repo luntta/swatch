@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import swatch from "../src/swatch.js";
+import swatch from "../src/_v2-monolith.js";
 
 // Reference color: solid blue #0000ff (hue = 240°).
 // All of the inputs below should parse to the same underlying RGB.

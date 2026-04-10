@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import "../src/bootstrap.js";
 import { Swatch } from "../src/core/swatch-class.js";
 import { getSpace } from "../src/core/registry.js";
-import v2swatch from "../src/swatch.js";
+import v2swatch from "../src/_v2-monolith.js";
 
 // Phase 2: verify Lab, LCh, OKLab, OKLCh, HSL against the v2 reference
 // implementation. All v3 conversions should match v2 to at least 5

@@ -401,7 +401,7 @@ export function swatch(input) {
 	if (input instanceof Swatch) return input;
 	if (!_parseInput) {
 		throw new Error(
-			"swatch(): parser not initialized. Import src/bootstrap.js first."
+			"swatch(): parser not initialized. Import swatch from 'swatch' (the package entry point) rather than reaching into core/swatch-class.js directly."
 		);
 	}
 	const state = _parseInput(input);
