@@ -19,15 +19,12 @@ export default function (eleventyConfig) {
 
 	// Passthrough
 	eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
-	eleventyConfig.addPassthroughCopy({
-		"../src/swatch.js": "assets/js/swatch.js",
-		"../src/named-colors.js": "assets/js/named-colors.js",
-	});
+	eleventyConfig.addPassthroughCopy({ "../src": "assets/js/lib" });
 	eleventyConfig.addPassthroughCopy({ "src/.nojekyll": ".nojekyll" });
 
 	// Watch JS/CSS
 	eleventyConfig.addWatchTarget("src/assets/");
-	eleventyConfig.addWatchTarget("../src/swatch.js");
+	eleventyConfig.addWatchTarget("../src/");
 
 	// Reference collection ordered by `order` front-matter
 	eleventyConfig.addCollection("reference", (api) =>

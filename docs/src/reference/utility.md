@@ -5,12 +5,42 @@ eyebrow: "Reference · §12"
 ---
 
 ```js
-c.clone();                                  // independent copy
-c.equals(other);                            // exact rgb match
-c.equals(other, { tolerance: 1 });          // within 1 rgb unit per channel
-c.equals(other, { space: "oklab", tolerance: 0.01 });
-c.toJSON();                                 // { hex, rgb, hsl, isValid, format }
-JSON.stringify(c);                          // uses toJSON automatically
+c.clone();                               // independent copy
+c.equals(other, epsilon);                // structural equality within epsilon
+c.toJSON();                              // { space, coords, alpha }
+JSON.stringify(c);                       // uses toJSON automatically
+```
+
+## equals
+
+Compares the other swatch's coords in the receiver's native space. Different
+source spaces round-trip through conversion, so visually-equivalent colors
+compare equal.
+
+```js
+a.equals(b);               // default epsilon = 1e-6
+a.equals(b, 0.01);         // looser tolerance
+```
+
+`other` must be a `Swatch` instance.
+
+## toJSON / from JSON
+
+```js
+const json = c.toJSON();   // { space: "srgb", coords: [0.2, 0.4, 0.8], alpha: 1 }
+swatch(json);              // round-trips cleanly
+```
+
+## CSS serialization
+
+```js
+c.toString();                            // default CSS form
+c.toString({ format: "hex" });           // "#3366cc"
+c.toString({ format: "oklch" });         // "oklch(0.529 0.122 262.4)"
+c.toString({ format: "lab" });
+c.toString({ format: "hwb" });
+c.toString({ format: "color", space: "display-p3" });
+c.toCss();                               // alias for toString()
 ```
 
 ## TypeScript

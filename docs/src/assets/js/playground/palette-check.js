@@ -2,8 +2,9 @@
 // <t-palette-check> · checkPalette + nudge
 // ============================================================
 
-import swatch from "../swatch.js";
+import swatch from "../lib/swatch.js";
 import { subscribe } from "./state.js";
+import { fmtHex } from "./format.js";
 
 class PaletteCheck extends HTMLElement {
 	connectedCallback() {
@@ -64,13 +65,15 @@ class PaletteCheck extends HTMLElement {
 		// chips
 		this.chips.innerHTML = "";
 		palette.forEach((p) => {
-			const c = swatch(p);
-			if (!c.isValid) return;
-			const el = document.createElement("span");
-			el.className = "chip";
-			el.style.background = c.hex;
-			el.title = c.hex;
-			this.chips.appendChild(el);
+			try {
+				const c = swatch(p);
+				const hex = fmtHex(c);
+				const el = document.createElement("span");
+				el.className = "chip";
+				el.style.background = hex;
+				el.title = hex;
+				this.chips.appendChild(el);
+			} catch (e) {}
 		});
 
 		// pairs
@@ -86,35 +89,38 @@ class PaletteCheck extends HTMLElement {
 		unsafe.forEach((u) => {
 			const a = palette[u.i];
 			const b = palette[u.j];
-			const ca = swatch(a);
-			const cb = swatch(b);
-			if (!ca.isValid || !cb.isValid) return;
-			const row = document.createElement("div");
-			row.className = "pair";
-			row.innerHTML = `
-				<div class="pair__swatches">
-					<span style="background:${ca.hex}"></span>
-					<span style="background:${cb.hex}"></span>
-					<span class="pair__de">ΔE ${u.deltaE.toFixed(1)}</span>
-				</div>
-				<button type="button" class="pair__nudge">Nudge ${b}</button>
-			`;
-			row.querySelector(".pair__nudge").addEventListener("click", () => {
-				try {
-					const nudged = swatch.nearestDistinguishable(b, a, {
-						cvd,
-						minDeltaE: min,
-					});
-					const lines = this.input.value.split("\n");
-					const idx = lines.findIndex((l) => l.trim() === b);
-					if (idx >= 0) {
-						lines[idx] = nudged.hex;
-						this.input.value = lines.join("\n");
-						this.render();
-					}
-				} catch (e) {}
-			});
-			this.pairs.appendChild(row);
+			try {
+				const ca = swatch(a);
+				const cb = swatch(b);
+				const hexA = fmtHex(ca);
+				const hexB = fmtHex(cb);
+				const row = document.createElement("div");
+				row.className = "pair";
+				row.innerHTML = `
+					<div class="pair__swatches">
+						<span style="background:${hexA}"></span>
+						<span style="background:${hexB}"></span>
+						<span class="pair__de">ΔE ${u.deltaE.toFixed(1)}</span>
+					</div>
+					<button type="button" class="pair__nudge">Nudge ${b}</button>
+				`;
+				row.querySelector(".pair__nudge").addEventListener("click", () => {
+					try {
+						const nudged = swatch.nearestDistinguishable(b, a, {
+							cvd,
+							minDeltaE: min,
+						});
+						const lines = this.input.value.split("\n");
+						const idx = lines.findIndex((l) => l.trim() === b);
+						if (idx >= 0) {
+							lines[idx] = fmtHex(nudged);
+							this.input.value = lines.join("\n");
+							this.render();
+						}
+					} catch (e) {}
+				});
+				this.pairs.appendChild(row);
+			} catch (e) {}
 		});
 	}
 }

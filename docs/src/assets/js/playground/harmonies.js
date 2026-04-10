@@ -1,7 +1,8 @@
 // ============================================================
-// <t-harmonies> · tabbed harmony generator
+// <t-harmonies> · tabbed harmony generator (OKLCh spin-based)
 // ============================================================
 
+import swatch from "../lib/swatch.js";
 import { subscribe, getRoot, setRoot } from "./state.js";
 import { copy, fmtHex } from "./format.js";
 
@@ -13,6 +14,18 @@ const TABS = [
 	{ key: "analogous", label: "Analogous" },
 	{ key: "monochromatic", label: "Monochromatic" },
 ];
+
+const HARMONIES = {
+	complementary: (c) => [c, c.spin(180)],
+	triad: (c) => [c, c.spin(120), c.spin(240)],
+	tetrad: (c) => [c, c.spin(90), c.spin(180), c.spin(270)],
+	splitComplement: (c) => [c, c.spin(150), c.spin(210)],
+	analogous: (c) => Array.from({ length: 6 }, (_, i) => c.spin(-75 + i * 30)),
+	monochromatic: (c) => Array.from({ length: 6 }, (_, i) => {
+		const step = i / 5;
+		return c.set("oklch.l", 0.15 + step * 0.7);
+	}),
+};
 
 class Harmonies extends HTMLElement {
 	connectedCallback() {
@@ -51,9 +64,7 @@ class Harmonies extends HTMLElement {
 		if (!c) return;
 		let arr = [];
 		try {
-			if (this.active === "analogous") arr = c.analogous(6, 30);
-			else if (this.active === "monochromatic") arr = c.monochromatic(6);
-			else arr = c[this.active]();
+			arr = HARMONIES[this.active](c);
 		} catch (e) {
 			arr = [c];
 		}

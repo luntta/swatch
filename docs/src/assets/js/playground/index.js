@@ -11,7 +11,12 @@ import "./simulation-grid.js";
 import "./daltonize.js";
 import "./contrast-panel.js";
 import "./manipulate.js";
+import "./tint-shade.js";
+import "./blend-panel.js";
 import "./harmonies.js";
+import "./scale-panel.js";
+import "./naming-panel.js";
+import "./temperature-panel.js";
 import "./palette-check.js";
 import "./delta-e.js";
 

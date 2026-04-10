@@ -73,7 +73,12 @@ class Manipulate extends HTMLElement {
 
 		for (const k of ["lighten", "saturate", "spin"]) {
 			const v = +this.inputs[k].value;
-			this.values[k].textContent = (v >= 0 ? "+" : "") + v + (k === "spin" ? "°" : "");
+			if (k === "spin") {
+				this.values[k].textContent = (v >= 0 ? "+" : "") + v + "°";
+			} else {
+				const d = k === "saturate" ? 3 : 2;
+				this.values[k].textContent = (v >= 0 ? "+" : "") + v.toFixed(d);
+			}
 		}
 	}
 }

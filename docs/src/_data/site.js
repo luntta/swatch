@@ -1,7 +1,7 @@
 export default {
 	title: "Swatch",
-	tagline: "A color library that takes vision seriously.",
-	version: "2.0",
+	tagline: "A color library with first-class colorblind support, CSS Color 4, wide-gamut spaces, and perceptual manipulation.",
+	version: "3.0",
 	repo: "https://github.com/luntta/swatch",
 	npm: "https://www.npmjs.com/package/swatch",
 	baseUrl: process.env.ELEVENTY_ENV === "production" ? "/swatch" : "",

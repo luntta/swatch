@@ -39,5 +39,5 @@ swatch.nearestDistinguishable("#ff6666", "#ff0000", {
 });
 ```
 
-The §07 panel of the [playground](/) wires both calls together — paste a
+The §12 panel of the [playground](/) wires both calls together — paste a
 palette and click `nudge` on any unsafe pair.

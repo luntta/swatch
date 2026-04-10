@@ -62,9 +62,10 @@ class Daltonize extends HTMLElement {
 				dalt.style.background = fmtHex(corrected);
 				dsim.style.background = fmtHex(simCorrected);
 			} catch (e) {
-				orig.style.background = c.hex;
-				dalt.style.background = c.hex;
-				dsim.style.background = c.hex;
+				const hex = fmtHex(c);
+				orig.style.background = hex;
+				dalt.style.background = hex;
+				dsim.style.background = hex;
 			}
 		}
 	}

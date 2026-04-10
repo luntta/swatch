@@ -3,12 +3,12 @@
 // ============================================================
 
 export function fmtHex(c) {
-	return c.hex.toLowerCase();
+	return c.toString({ format: "hex" }).toLowerCase();
 }
 
 export function fmtRgb(c) {
-	const { r, g, b } = c.rgb;
-	return `rgb(${r} ${g} ${b})`;
+	const { r, g, b } = c.srgb;
+	return `rgb(${Math.round(r * 255)} ${Math.round(g * 255)} ${Math.round(b * 255)})`;
 }
 
 export function fmtHsl(c) {
@@ -17,20 +17,26 @@ export function fmtHsl(c) {
 }
 
 export function fmtOklch(c) {
-	const { l, c: chroma, h } = c.toOklch();
+	const { l, c: chroma, h } = c.oklch;
 	const safeH = Number.isFinite(h) ? Math.round(h) : 0;
 	return `oklch(${(l * 100).toFixed(1)}% ${chroma.toFixed(3)} ${safeH})`;
 }
 
 export function fmtLab(c) {
-	const { l, a, b } = c.toLab();
+	const { l, a, b } = c.lab;
 	return `lab(${l.toFixed(1)}% ${a.toFixed(1)} ${b.toFixed(1)})`;
+}
+
+export function fmtHwb(c) {
+	const { h, w, b } = c.hwb;
+	return `hwb(${Math.round(h)} ${Math.round(w)}% ${Math.round(b)}%)`;
 }
 
 export const FORMATS = {
 	hex: fmtHex,
 	rgb: fmtRgb,
 	hsl: fmtHsl,
+	hwb: fmtHwb,
 	oklch: fmtOklch,
 	lab: fmtLab,
 };
@@ -60,8 +66,8 @@ export async function copy(text) {
 
 export function readableInkOn(c) {
 	// pick black or white text on a given swatch background
-	const white = c.contrast("#ffffff");
 	const black = c.contrast("#000000");
+	const white = c.contrast("#ffffff");
 	return black >= white ? "#0d0c08" : "#f7f1de";
 }
 

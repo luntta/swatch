@@ -2,7 +2,7 @@
 // <t-contrast-panel> · WCAG 2.1 + APCA, paired pickers, auto-fix
 // ============================================================
 
-import swatch from "../swatch.js";
+import swatch from "../lib/swatch.js";
 import { subscribe, getRoot } from "./state.js";
 import { fmtHex, copy } from "./format.js";
 
@@ -23,23 +23,21 @@ class ContrastPanel extends HTMLElement {
 		this.bg = null; // synced from root
 
 		this.fgInput.addEventListener("input", () => {
-			const c = swatch(this.fgInput.value.trim());
-			if (c.isValid) {
-				this.fg = c;
+			try {
+				this.fg = swatch(this.fgInput.value.trim());
 				this.render();
-			}
+			} catch (e) {}
 		});
 		this.bgInput.addEventListener("input", () => {
-			const c = swatch(this.bgInput.value.trim());
-			if (c.isValid) {
-				this.bg = c;
+			try {
+				this.bg = swatch(this.bgInput.value.trim());
 				this.render();
-			}
+			} catch (e) {}
 		});
 
 		this.fixBtn.addEventListener("click", () => {
 			try {
-				this.fg = this.fg.ensureContrast(this.bg.hex, { minRatio: 4.5 });
+				this.fg = this.fg.ensureContrast(this.bg, { minRatio: 4.5 });
 				this.fgInput.value = fmtHex(this.fg);
 				this.render();
 			} catch (e) {}
@@ -77,7 +75,7 @@ class ContrastPanel extends HTMLElement {
 		this.fgDot.style.background = fgHex;
 		this.bgDot.style.background = bgHex;
 
-		const ratio = this.fg.contrast(this.bg.hex);
+		const ratio = this.fg.contrast(this.bg);
 		this.ratio.textContent = ratio.toFixed(2) + ":1";
 
 		let apca = 0;

@@ -2,7 +2,7 @@
 // Swatch playground · root-color store + URL hash sync
 // ============================================================
 
-import swatch from "../swatch.js";
+import swatch from "../lib/swatch.js";
 
 const STORAGE_KEY = "swatch-root";
 const HASH_KEY = "c";
@@ -33,26 +33,34 @@ const listeners = new Set();
 let _writeTimer = null;
 
 function safeSwatch(input) {
-	const c = swatch(input);
-	return c && c.isValid ? c : null;
+	try {
+		return swatch(input);
+	} catch (e) {
+		return null;
+	}
 }
 
 export function getRoot() {
 	return _root;
 }
 
+function toHex(c) {
+	return c.toString({ format: "hex" });
+}
+
 export function setRoot(input, opts = {}) {
 	const c = typeof input === "string" ? safeSwatch(input) : input;
-	if (!c || !c.isValid) return false;
+	if (!c) return false;
 	_root = c;
 	notify();
 
 	clearTimeout(_writeTimer);
 	_writeTimer = setTimeout(() => {
+		const hex = toHex(c);
 		try {
-			localStorage.setItem(STORAGE_KEY, c.hex);
+			localStorage.setItem(STORAGE_KEY, hex);
 		} catch (e) {}
-		if (!opts.skipHash) writeHash(c.hex);
+		if (!opts.skipHash) writeHash(hex);
 	}, 150);
 	return true;
 }
@@ -88,7 +96,7 @@ export function init(defaultColor = "#c5341c") {
 		const next = readHash();
 		if (!next) return;
 		const c = safeSwatch(next);
-		if (c && c.hex !== _root.hex) {
+		if (c && toHex(c) !== toHex(_root)) {
 			_root = c;
 			notify();
 		}

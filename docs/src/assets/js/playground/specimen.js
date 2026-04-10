@@ -4,7 +4,7 @@
 // ============================================================
 
 import { subscribe } from "./state.js";
-import { FORMATS, copy } from "./format.js";
+import { FORMATS, fmtHex, copy } from "./format.js";
 
 export function attachSpecimen(root) {
 	const el = root.querySelector("[data-specimen]");
@@ -18,7 +18,7 @@ export function attachSpecimen(root) {
 
 	subscribe((c) => {
 		if (!c) return;
-		chip.style.background = c.hex;
+		chip.style.background = fmtHex(c);
 		dds.forEach((dd) => {
 			const fmt = dd.dataset.format;
 			const fn = FORMATS[fmt];

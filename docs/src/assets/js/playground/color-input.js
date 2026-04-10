@@ -2,7 +2,7 @@
 // <t-color-input> · root color text + native picker + randomize
 // ============================================================
 
-import swatch from "../swatch.js";
+import swatch from "../lib/swatch.js";
 import { getRoot, setRoot, subscribe } from "./state.js";
 import { copy, fmtHex, randomHex } from "./format.js";
 
@@ -18,11 +18,11 @@ class ColorInput extends HTMLElement {
 		// Live text input
 		this.text.addEventListener("input", () => {
 			const v = this.text.value.trim();
-			const c = swatch(v);
-			if (c.isValid) {
+			try {
+				const c = swatch(v);
 				this.bar.classList.remove("is-invalid");
 				setRoot(c);
-			} else {
+			} catch (e) {
 				this.bar.classList.add("is-invalid");
 			}
 		});

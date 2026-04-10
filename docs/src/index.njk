@@ -15,9 +15,10 @@ description: "An interactive playground for Swatch — a color library with firs
 				A color library, <span class="muted">built for vision.</span>
 			</h1>
 			<p class="hero__lede">
-				Physically correct Brettel/Viénot simulation, a severity continuum,
-				Fidaner daltonization, and palette distinguishability checks — plus
-				parsing, perceptual spaces, ΔE, harmonies, WCAG 2.1 and APCA contrast.
+				CSS Color 4 parsing, 21 perceptual spaces, OKLCh manipulation,
+				color scales, built-in palettes, blend modes, wide-gamut support —
+				plus Brettel/Viénot CVD simulation, Fidaner daltonization, palette
+				distinguishability, WCAG 2.1 and APCA contrast.
 			</p>
 			<div class="hero__cta">
 				<a class="btn btn--primary" href="#playground">Open the playground</a>
@@ -31,6 +32,7 @@ description: "An interactive playground for Swatch — a color library with firs
 				<dt>Hex</dt>   <dd data-format="hex">—</dd>
 				<dt>RGB</dt>   <dd data-format="rgb">—</dd>
 				<dt>HSL</dt>   <dd data-format="hsl">—</dd>
+				<dt>HWB</dt>   <dd data-format="hwb">—</dd>
 				<dt>OKLCh</dt> <dd data-format="oklch">—</dd>
 				<dt>Lab</dt>   <dd data-format="lab">—</dd>
 			</dl>
@@ -203,8 +205,9 @@ description: "An interactive playground for Swatch — a color library with firs
 			<span class="section__index">05 — Manipulate</span>
 			<h2 class="section__title">Lighten, saturate, spin.</h2>
 			<p class="section__lede">
-				Immutable HSL-space adjustments. Click promote to lift the
-				derived color into the root and keep working from there.
+				Immutable OKLCh-space adjustments. Amounts are in perceptual
+				lightness (L) and chroma (C) units, 0–1 scale. Click promote
+				to lift the derived color into the root and keep working from there.
 			</p>
 		</div>
 		<t-manipulate>
@@ -212,13 +215,13 @@ description: "An interactive playground for Swatch — a color library with firs
 				<div class="knobs__sliders">
 					<div class="knob">
 						<label for="k-lighten">Lighten</label>
-						<input id="k-lighten" type="range" min="-50" max="50" step="1" value="0" data-knob="lighten" />
-						<span class="knob__value" data-knob-value="lighten">+0</span>
+						<input id="k-lighten" type="range" min="-0.3" max="0.3" step="0.01" value="0" data-knob="lighten" />
+						<span class="knob__value" data-knob-value="lighten">+0.00</span>
 					</div>
 					<div class="knob">
 						<label for="k-saturate">Saturate</label>
-						<input id="k-saturate" type="range" min="-50" max="50" step="1" value="0" data-knob="saturate" />
-						<span class="knob__value" data-knob-value="saturate">+0</span>
+						<input id="k-saturate" type="range" min="-0.2" max="0.2" step="0.005" value="0" data-knob="saturate" />
+						<span class="knob__value" data-knob-value="saturate">+0.000</span>
 					</div>
 					<div class="knob">
 						<label for="k-spin">Spin</label>
@@ -239,11 +242,93 @@ description: "An interactive playground for Swatch — a color library with firs
 	</section>
 
 	{# ============================================================
+	   Tint / Shade / Tone
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">06 — Tint / Shade</span>
+			<h2 class="section__title">Mix toward white, black, or grey.</h2>
+			<p class="section__lede">
+				Tint mixes the root color toward white in OKLab; shade toward
+				black; tone toward mid-grey. The amount runs from 0 (unchanged)
+				to 1 (fully mixed). Click any chip to copy its hex.
+			</p>
+		</div>
+		<t-tint-shade>
+			<div class="ts-strips">
+				<div class="ts-row">
+					<span class="ts-row__label">Tint</span>
+					<div class="ts-row__chips" data-tint-strip></div>
+				</div>
+				<div class="ts-row">
+					<span class="ts-row__label">Shade</span>
+					<div class="ts-row__chips" data-shade-strip></div>
+				</div>
+				<div class="ts-row">
+					<span class="ts-row__label">Tone</span>
+					<div class="ts-row__chips" data-tone-strip></div>
+				</div>
+			</div>
+		</t-tint-shade>
+	</section>
+
+	{# ============================================================
+	   Blend
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">07 — Blend</span>
+			<h2 class="section__title">Compositing blend modes.</h2>
+			<p class="section__lede">
+				W3C Compositing and Blending Level 1 modes, applied per-channel
+				in linear sRGB. Pick a mode and a second color to see the result.
+			</p>
+		</div>
+		<t-blend-panel>
+			<div class="blend">
+				<div class="blend__inputs">
+					<div class="blend__color">
+						<span class="label-mono">Blend with</span>
+						<input type="text" data-blend-input value="#2563eb" spellcheck="false" />
+					</div>
+					<div class="blend__color">
+						<span class="label-mono">Mode</span>
+						<select data-blend-mode>
+							<option value="normal">Normal</option>
+							<option value="multiply" selected>Multiply</option>
+							<option value="screen">Screen</option>
+							<option value="darken">Darken</option>
+							<option value="lighten">Lighten</option>
+							<option value="overlay">Overlay</option>
+							<option value="color-dodge">Color Dodge</option>
+							<option value="color-burn">Color Burn</option>
+							<option value="hard-light">Hard Light</option>
+							<option value="soft-light">Soft Light</option>
+							<option value="difference">Difference</option>
+							<option value="exclusion">Exclusion</option>
+						</select>
+					</div>
+				</div>
+				<div class="blend__preview">
+					<div class="blend__chips">
+						<div class="blend__chip" data-blend-a></div>
+						<span class="blend__op">&times;</span>
+						<div class="blend__chip" data-blend-b></div>
+						<span class="blend__op">=</span>
+						<div class="blend__chip" data-blend-result></div>
+					</div>
+					<button class="blend__hex" type="button" data-blend-hex>—</button>
+				</div>
+			</div>
+		</t-blend-panel>
+	</section>
+
+	{# ============================================================
 	   Harmonies
 	   ============================================================ #}
 	<section class="section">
 		<div class="section__head">
-			<span class="section__index">06 — Harmonies</span>
+			<span class="section__index">08 — Harmonies</span>
 			<h2 class="section__title">Sets that belong together.</h2>
 			<p class="section__lede">
 				Click any chip to copy its hex; shift-click to promote it to the
@@ -257,11 +342,113 @@ description: "An interactive playground for Swatch — a color library with firs
 	</section>
 
 	{# ============================================================
+	   Scales
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">09 — Scales</span>
+			<h2 class="section__title">Continuous color ramps.</h2>
+			<p class="section__lede">
+				Enter comma-separated color stops, or pick a built-in palette.
+				The scale interpolates in the chosen color space and renders
+				chips across the domain. Click any chip to copy its hex.
+			</p>
+		</div>
+		<t-scale-panel>
+			<div class="scale-panel">
+				<div class="scale-panel__form">
+					<label>
+						<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Stops</span>
+						<input type="text" data-scale-stops spellcheck="false"
+							placeholder="#e41a1c, #377eb8, #4daf4a" />
+					</label>
+					<div class="scale-panel__row">
+						<label>
+							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Palette</span>
+							<select data-scale-palette>
+								<option value="">Custom stops</option>
+							</select>
+						</label>
+						<label>
+							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Mode</span>
+							<select data-scale-mode>
+								<option value="oklab" selected>OKLab</option>
+								<option value="oklch">OKLCh</option>
+								<option value="lab">Lab</option>
+								<option value="srgb">sRGB</option>
+							</select>
+						</label>
+					</div>
+				</div>
+				<div class="scale-panel__strip" data-scale-chips></div>
+			</div>
+		</t-scale-panel>
+	</section>
+
+	{# ============================================================
+	   Naming
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">10 — Naming</span>
+			<h2 class="section__title">What's it called?</h2>
+			<p class="section__lede">
+				The nearest CSS named color by CIEDE2000 distance. Useful for
+				quick labels, accessibility descriptions, and color
+				communication.
+			</p>
+		</div>
+		<t-naming-panel>
+			<div class="naming">
+				<div class="naming__chip" data-naming-chip></div>
+				<div class="naming__info">
+					<strong data-naming-name>—</strong>
+					<button class="naming__hex" type="button" data-naming-hex>—</button>
+					<small class="naming__de label-mono" data-naming-de>—</small>
+				</div>
+			</div>
+		</t-naming-panel>
+	</section>
+
+	{# ============================================================
+	   Temperature
+	   ============================================================ #}
+	<section class="section">
+		<div class="section__head">
+			<span class="section__index">11 — Temperature</span>
+			<h2 class="section__title">Blackbody color.</h2>
+			<p class="section__lede">
+				Drag the slider to generate a color from a blackbody radiator
+				at a given Kelvin temperature (Krystek 1985). The inverse
+				reading shows the estimated correlated color temperature of the
+				current root color (McCamy 1992).
+			</p>
+		</div>
+		<t-temperature-panel>
+			<div class="temperature">
+				<div class="temperature__slider">
+					<label for="temp-k">Temperature</label>
+					<input id="temp-k" type="range" min="1000" max="15000" step="100" value="6500" data-temp-slider />
+					<span class="temperature__kelvin" data-temp-kelvin>6500 K</span>
+				</div>
+				<div class="temperature__preview">
+					<div class="temperature__chip" data-temp-chip></div>
+					<button class="temperature__hex" type="button" data-temp-hex>—</button>
+				</div>
+				<div class="temperature__inverse">
+					<span class="label-mono">Root ≈</span>
+					<span data-temp-inverse>—</span>
+				</div>
+			</div>
+		</t-temperature-panel>
+	</section>
+
+	{# ============================================================
 	   Palette distinguishability
 	   ============================================================ #}
 	<section class="section">
 		<div class="section__head">
-			<span class="section__index">07 — Palette</span>
+			<span class="section__index">12 — Palette</span>
 			<h2 class="section__title">Distinguishable under CVD.</h2>
 			<p class="section__lede">
 				A palette is only useful if every color stays visibly different
@@ -322,7 +509,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	   ============================================================ #}
 	<section class="section">
 		<div class="section__head">
-			<span class="section__index">08 — Delta E</span>
+			<span class="section__index">13 — Delta E</span>
 			<h2 class="section__title">How far apart?</h2>
 			<p class="section__lede">
 				ΔE ("delta E") is a single number that answers "how different
@@ -332,15 +519,17 @@ description: "An interactive playground for Swatch — a color library with firs
 				noticeable; 10+ is unmistakably a different color.
 			</p>
 			<p class="section__lede">
-				The three modes trade accuracy for cost. <strong>ΔE 76</strong>
-				is the original 1976 formula — just Euclidean distance in Lab,
-				fast but crude around blues and saturated tones.
-				<strong>CIEDE2000</strong> is the industry standard: same idea,
-				but with correction terms for lightness, chroma, and hue that
-				match human judgement much better. <strong>ΔE OK</strong> is
-				the modern take, plain Euclidean distance in the OKLab space,
-				which was designed from the start to make that simple formula
-				work well.
+				Six modes, three eras. <strong>ΔE 76</strong> is the original
+				1976 formula — Euclidean distance in Lab, fast but crude
+				around blues. <strong>CIE94</strong> adds weighting for
+				lightness and chroma. <strong>CIEDE2000</strong> is the
+				industry standard with full hue-rotation correction.
+				<strong>CMC</strong> is its textile-industry sibling.
+				<strong>HyAB</strong> (Abasi & Fairchild) uses a hybrid
+				L1+L2 metric for better large-difference ranking.
+				<strong>ΔE OK</strong> is the modern take — plain Euclidean
+				distance in OKLab, which was designed to make that simple
+				formula perceptually uniform.
 			</p>
 		</div>
 		<t-delta-e>
@@ -360,6 +549,9 @@ description: "An interactive playground for Swatch — a color library with firs
 						<button type="button" data-mode="2000" class="is-active">2000</button>
 						<button type="button" data-mode="76">76</button>
 						<button type="button" data-mode="ok">OK</button>
+						<button type="button" data-mode="94">94</button>
+						<button type="button" data-mode="cmc">CMC</button>
+						<button type="button" data-mode="hyab">HyAB</button>
 					</div>
 					<small data-de-label class="label-mono">—</small>
 				</div>

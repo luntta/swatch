@@ -4,15 +4,15 @@ order: 1
 eyebrow: "Reference · §01"
 ---
 
-**Swatch** is a multi-purpose color library with first-class color blindness
-support: physically correct Brettel/Viénot simulation, a severity continuum,
-Fidaner daltonization, and palette distinguishability checks. It also covers
-the everyday work of color: parsing, perceptual spaces (OKLab, CIE Lab, LCh),
-ΔE, manipulation, harmonies, WCAG 2.1 and APCA contrast.
+**Swatch** is a zero-dependency color library with first-class colorblind
+support, CSS Color 4 parsing, wide-gamut spaces, OKLCh manipulation, color
+scales, built-in palettes, blend modes, WCAG 2.1 and APCA contrast.
 
-> **2.0** is a breaking rewrite. The old `toColorBlindRGB()` and `deficiency()`
-> methods are gone — use [`simulate()`](/reference/simulation/) and
-> [`daltonize()`](/reference/daltonization/) instead.
+> **3.0** is a breaking rewrite. Storage moved to a canonical `{ space, coords,
+> alpha }` state, conversions route through a lazy CIE XYZ D65 hub, and the
+> monolith has been split into focused modules. See
+> [MIGRATING.md](https://github.com/luntta/swatch/blob/master/MIGRATING.md) for
+> the v2 → v3 cookbook.
 
 ## Install
 
@@ -29,15 +29,17 @@ import swatch from "swatch";
 ```js
 const c = swatch("#3366cc");
 
-c.hex;                              // "#3366cc"
-c.rgb;                              // { r: 51, g: 102, b: 204 }
-c.simulate("deutan");               // a new swatch, deuteranope view
-c.daltonize("deutan");              // pre-corrected for deuteranopes
-c.contrast("#fff");                 // 4.78
-c.toOklch();                        // { l, c, h }
-c.deltaE("#3366cd");                // 0.18 (CIEDE2000)
-c.lighten(20).spin(45).toRgbString();
+c.srgb;                                 // { r: 0.2, g: 0.4, b: 0.8 }
+c.oklch;                                // { l, c, h }
+c.simulate("deutan");                   // a new swatch, deuteranope view
+c.daltonize("deutan");                  // pre-corrected for deuteranopes
+c.contrast("#fff");                     // 4.78
+c.deltaE("#3366cd");                    // 0.18 (CIEDE2000)
+c.lighten(0.1).spin(45).toString({ format: "hex" });
+
+swatch("oklch(0.7 0.15 240)");         // CSS Color 4
+swatch("color(display-p3 1 0 0)");     // wide-gamut
+swatch.scale(["#00f", "#f00"]).colors(5);
 ```
 
-Every instance is **immutable** — every transformation returns a new
-`swatch`.
+Every instance is **immutable** — every transformation returns a new `swatch`.

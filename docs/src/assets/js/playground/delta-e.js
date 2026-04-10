@@ -1,36 +1,42 @@
 // ============================================================
-// <t-delta-e> · pairwise CIEDE2000 / 76 / OK
+// <t-delta-e> · pairwise ΔE (2000 / 76 / OK / 94 / CMC / HyAB)
 // ============================================================
 
-import swatch from "../swatch.js";
+import swatch from "../lib/swatch.js";
 import { subscribe, getRoot } from "./state.js";
+import { fmtHex } from "./format.js";
 
-// Quality bands per ΔE mode. ΔE 76 and CIEDE2000 live on a 0..100 scale;
-// ΔE OK (Euclidean in OKLab) lives on roughly 0..1 — white→black is 1.0
-// and ~0.01 is one JND. The OK thresholds are the 76/2000 ones ÷ 100.
+// Quality bands per ΔE mode. ΔE 76 / 2000 / 94 / CMC live on a 0..100
+// scale; ΔE OK (Euclidean in OKLab) lives on roughly 0..1 — white→black
+// is 1.0 and ~0.01 is one JND. HyAB has a wider range than Lab-Euclidean.
+const STANDARD_BANDS = [
+	{ max: 1, label: "Imperceptible" },
+	{ max: 2, label: "Just noticeable" },
+	{ max: 5, label: "Perceptible" },
+	{ max: 10, label: "Easily distinguishable" },
+	{ max: 50, label: "Different colors" },
+	{ max: Infinity, label: "Opposite" },
+];
+
 const QUALITY = {
-	"76": [
-		{ max: 1, label: "Imperceptible" },
-		{ max: 2, label: "Just noticeable" },
-		{ max: 5, label: "Perceptible" },
-		{ max: 10, label: "Easily distinguishable" },
-		{ max: 50, label: "Different colors" },
-		{ max: Infinity, label: "Opposite" },
-	],
-	"2000": [
-		{ max: 1, label: "Imperceptible" },
-		{ max: 2, label: "Just noticeable" },
-		{ max: 5, label: "Perceptible" },
-		{ max: 10, label: "Easily distinguishable" },
-		{ max: 50, label: "Different colors" },
-		{ max: Infinity, label: "Opposite" },
-	],
+	"76": STANDARD_BANDS,
+	"2000": STANDARD_BANDS,
+	"94": STANDARD_BANDS,
+	cmc: STANDARD_BANDS,
 	ok: [
 		{ max: 0.01, label: "Imperceptible" },
 		{ max: 0.02, label: "Just noticeable" },
 		{ max: 0.05, label: "Perceptible" },
 		{ max: 0.1, label: "Easily distinguishable" },
 		{ max: 0.5, label: "Different colors" },
+		{ max: Infinity, label: "Opposite" },
+	],
+	hyab: [
+		{ max: 2, label: "Imperceptible" },
+		{ max: 5, label: "Just noticeable" },
+		{ max: 10, label: "Perceptible" },
+		{ max: 25, label: "Easily distinguishable" },
+		{ max: 75, label: "Different colors" },
 		{ max: Infinity, label: "Opposite" },
 	],
 };
@@ -68,8 +74,8 @@ class DeltaE extends HTMLElement {
 		// with the root's complement on first run.
 		this._unsub = subscribe((c) => {
 			if (!c) return;
-			this.inputs.a.value = c.hex;
-			if (!this.inputs.b.value) this.inputs.b.value = c.complement().hex;
+			this.inputs.a.value = fmtHex(c);
+			if (!this.inputs.b.value) this.inputs.b.value = fmtHex(c.spin(180));
 			this.render();
 		});
 	}
@@ -79,17 +85,19 @@ class DeltaE extends HTMLElement {
 	}
 
 	render() {
-		const a = swatch(this.inputs.a.value.trim());
-		const b = swatch(this.inputs.b.value.trim());
-		if (!a.isValid || !b.isValid) {
+		let a, b;
+		try {
+			a = swatch(this.inputs.a.value.trim());
+			b = swatch(this.inputs.b.value.trim());
+		} catch (e) {
 			this.value.textContent = "—";
 			return;
 		}
-		this.dots.a.style.background = a.hex;
-		this.dots.b.style.background = b.hex;
+		this.dots.a.style.background = fmtHex(a);
+		this.dots.b.style.background = fmtHex(b);
 		let de;
 		try {
-			de = a.deltaE(b.hex, this.mode);
+			de = a.deltaE(b, this.mode);
 		} catch (e) {
 			de = 0;
 		}
