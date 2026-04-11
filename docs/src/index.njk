@@ -124,20 +124,27 @@ description: "An interactive playground for Swatch — a color library with firs
 			<span class="section__index">03 — Daltonize</span>
 			<h2 class="section__title">Restore lost information.</h2>
 			<p class="section__lede">
-				Daltonizing is the opposite of simulating: instead of showing
-				what a color-blind viewer sees, it <em>rewrites</em> the color
-				so the distinction they'd normally miss is pushed into channels
-				they can still see. Reds that would vanish for a deutan, for
-				instance, get nudged toward yellows and blues.
+				If you're building a "color blind mode" for an app or game,
+				these are the colors you'd actually put on screen.
+				<code>daltonize()</code> rewrites a color so the distinctions
+				a CVD viewer would normally miss get pushed into channels they
+				can still see — reds that would vanish for a deutan, for
+				instance, shift toward yellows and blues.
 			</p>
 			<p class="section__lede">
-				The math here is Onur Fidaner's <em>error redistribution</em>:
+				The table reads left to right per row. <strong>Original
+				(sim)</strong> is the problem — what a CVD viewer currently
+				sees with your unmodified color. <strong>Daltonized</strong>
+				is the corrected color you display instead. <strong>Daltonized
+				(sim)</strong> is the proof — what the CVD viewer actually
+				sees after correction. It should look more distinct than the
+				first column, meaning the lost information was recovered.
+			</p>
+			<p class="section__lede">
+				The math is Onur Fidaner's <em>error redistribution</em>:
 				compute what the dichromat loses (original minus simulated),
 				then add a weighted slice of that lost signal back into the
-				surviving channels. Three columns per deficiency — the original,
-				the daltonized version, and that daltonized version run back
-				through simulation so you can see the difference actually
-				survived.
+				surviving channels.
 			</p>
 		</div>
 		<t-daltonize>
