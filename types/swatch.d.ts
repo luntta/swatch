@@ -95,19 +95,72 @@ export interface StateInput {
 	space: SpaceId;
 	coords: [number, number, number];
 	alpha?: number;
+	a?: number;
+}
+
+export interface LegacyRgbInput {
+	/** Legacy object input in 0..255 channel units. */
+	r: number;
+	g: number;
+	b: number;
+	a?: number;
+}
+
+export interface HslInput {
+	h: number;
+	s: number;
+	l: number;
+	a?: number;
+}
+
+export interface HsvInput {
+	h: number;
+	s: number;
+	v: number;
+	a?: number;
+}
+
+export interface HwbInput {
+	h: number;
+	w: number;
+	b: number;
+	a?: number;
+}
+
+export interface LabInput {
+	l: number;
+	a: number;
+	b: number;
+	alpha?: number;
+}
+
+export interface LchInput {
+	l: number;
+	c: number;
+	h: number;
+	alpha?: number;
+}
+
+export interface CmykInput {
+	c: number;
+	m: number;
+	y: number;
+	k: number;
+	alpha?: number;
+	a?: number;
 }
 
 export type ColorInput =
 	| string
 	| Swatch
 	| StateInput
-	| (Partial<SrgbChannels> & { a?: number })
-	| (Partial<HslChannels> & { a?: number })
-	| (Partial<LabChannels> & { alpha?: number })
-	| (Partial<LchChannels> & { alpha?: number })
-	| (Partial<HsvChannels> & { a?: number })
-	| (Partial<HwbChannels> & { a?: number })
-	| (Partial<CmykChannels> & { alpha?: number });
+	| LegacyRgbInput
+	| HslInput
+	| LabInput
+	| LchInput
+	| HsvInput
+	| HwbInput
+	| CmykInput;
 
 // ─── Options bags ─────────────────────────────────────────────────────
 
@@ -195,9 +248,21 @@ export type FormatName =
 	| "oklch"
 	| "color";
 
+export type ColorFunctionSpaceId =
+	| "srgb"
+	| "srgb-linear"
+	| "display-p3"
+	| "rec2020"
+	| "a98"
+	| "prophoto"
+	| "xyz"
+	| "xyz-d65"
+	| "xyz-d50";
+
 export interface FormatOptions {
 	format?: FormatName;
 	precision?: number;
+	space?: ColorFunctionSpaceId;
 }
 
 export interface NameResult {

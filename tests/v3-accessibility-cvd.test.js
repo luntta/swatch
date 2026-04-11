@@ -39,6 +39,16 @@ describe("Phase 16: WCAG contrast + luminance", () => {
 	it("luminance of black is 0", () => {
 		expect(luminance("#000000")).toBeCloseTo(0, 10);
 	});
+
+	it("maps wide-gamut inputs into sRGB before WCAG metrics", () => {
+		const wide = swatch("color(display-p3 1 0 0)");
+		const mapped = wide.toGamut({ space: "srgb" });
+		expect(luminance(wide)).toBeCloseTo(luminance(mapped), 10);
+		expect(contrast(wide, "#ffffff")).toBeCloseTo(
+			contrast(mapped, "#ffffff"),
+			10
+		);
+	});
 });
 
 describe("Phase 16: isReadable", () => {
@@ -99,6 +109,13 @@ describe("Phase 16: ensureContrast", () => {
 		const hex = r.toString({ format: "hex" });
 		expect(["#000000", "#ffffff"]).toContain(hex);
 	});
+
+	it("adjusts wide-gamut foregrounds against sRGB backgrounds", () => {
+		const r = ensureContrast("color(display-p3 1 0 0)", "#ffffff", {
+			minRatio: 4.5
+		});
+		expect(contrast(r, "#ffffff")).toBeGreaterThanOrEqual(4.5);
+	});
 });
 
 describe("Phase 16: APCA", () => {
@@ -117,6 +134,14 @@ describe("Phase 16: APCA", () => {
 	it("wired as c.apcaContrast(bg)", () => {
 		const text = swatch("#000000");
 		expect(text.apcaContrast("#ffffff")).toBeGreaterThan(100);
+	});
+
+	it("maps wide-gamut inputs into sRGB before APCA", () => {
+		const wide = swatch("color(display-p3 1 0 0)");
+		const mapped = wide.toGamut({ space: "srgb" });
+		const lc = apcaContrast(wide, "#ffffff");
+		expect(Number.isFinite(lc)).toBe(true);
+		expect(lc).toBeCloseTo(apcaContrast(mapped, "#ffffff"), 10);
 	});
 });
 

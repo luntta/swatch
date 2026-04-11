@@ -10,9 +10,16 @@
 // the spec.
 
 import { Swatch, swatch } from "../core/swatch-class.js";
+import { inGamut, toGamut } from "./gamut.js";
 
 function toSwatch(input) {
 	return input instanceof Swatch ? input : swatch(input);
+}
+
+function toDisplaySrgb(input) {
+	const s = toSwatch(input);
+	if (inGamut(s, "srgb")) return s.to("srgb");
+	return toGamut(s, { space: "srgb" });
 }
 
 const mainTRC = 2.4;
@@ -47,8 +54,8 @@ const loWoBoffset = 0.027;
 const loClip = 0.1;
 
 export function apcaContrast(text, background) {
-	const t = toSwatch(text);
-	const b = toSwatch(background);
+	const t = toDisplaySrgb(text);
+	const b = toDisplaySrgb(background);
 
 	const txtY = clampY(apcaY(t.srgb));
 	const bgY = clampY(apcaY(b.srgb));

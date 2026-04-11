@@ -18,10 +18,8 @@
 //   'oklch'        — oklch(L C H)
 //   'color'        — color(<space> r g b [/ a])  — uses the source space
 //
-// Precision: numbers are serialized with up to 5 significant digits by
+// Precision: numbers are serialized with up to 6 significant digits by
 // default to keep strings short; pass `{ precision }` to override.
-
-import { getSpace } from "../core/registry.js";
 
 const DEFAULT_PRECISION = 6;
 
@@ -104,6 +102,17 @@ function toHslLegacy(swatch, precision) {
 	return `hsl(${H}, ${S}%, ${L}%)`;
 }
 
+function toHwb(swatch, precision) {
+	const { h, w, b } = swatch.hwb;
+	const H = fmtNum(h, precision);
+	const W = fmtNum(w, precision);
+	const B = fmtNum(b, precision);
+	if (swatch.alpha < 1) {
+		return `hwb(${H} ${W}% ${B}% / ${fmtAlpha(swatch.alpha, precision)})`;
+	}
+	return `hwb(${H} ${W}% ${B}%)`;
+}
+
 function toLab(swatch, precision) {
 	// CSS lab() is D50.
 	const coords = swatch._getCoordsIn("lab-d50");
@@ -158,6 +167,7 @@ const SPACE_TO_COLOR_FN = {
 	a98: "a98-rgb",
 	prophoto: "prophoto-rgb",
 	xyz: "xyz-d65",
+	"xyz-d65": "xyz-d65",
 	"xyz-d50": "xyz-d50"
 };
 
@@ -186,6 +196,8 @@ function defaultFormat(swatch) {
 			return swatch.alpha < 1 ? "rgb" : "hex";
 		case "hsl":
 			return "hsl";
+		case "hwb":
+			return "hwb";
 		case "lab":
 		case "lab-d50":
 			return "lab";
@@ -202,6 +214,7 @@ function defaultFormat(swatch) {
 		case "prophoto":
 		case "srgb-linear":
 		case "xyz":
+		case "xyz-d65":
 		case "xyz-d50":
 			return "color";
 		default:
@@ -225,6 +238,8 @@ export function formatCss(swatch, opts = {}) {
 			return toHslModern(swatch, precision);
 		case "hsl-legacy":
 			return toHslLegacy(swatch, precision);
+		case "hwb":
+			return toHwb(swatch, precision);
 		case "lab":
 			return toLab(swatch, precision);
 		case "lch":

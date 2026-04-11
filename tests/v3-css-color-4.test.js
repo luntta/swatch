@@ -193,6 +193,11 @@ describe("Phase 4: CSS serialization", () => {
 		expect(c.toString({ format: "hsl" })).toBe("hsl(240 100% 50%)");
 	});
 
+	it("hwb format", () => {
+		const c = swatch("hwb(240 0% 0% / 0.5)");
+		expect(c.toString({ format: "hwb" })).toBe("hwb(240 0% 0% / 0.5)");
+	});
+
 	it("lab serializes to D50 space", () => {
 		const c = swatch("lab(50 20 -30)");
 		expect(c.toString({ format: "lab" })).toBe("lab(50 20 -30)");
@@ -221,5 +226,10 @@ describe("Phase 4: CSS serialization", () => {
 	it("default format for display-p3 source is color(display-p3 ...)", () => {
 		const c = swatch("color(display-p3 0.5 0.2 0.8)");
 		expect(c.toString()).toMatch(/^color\(display-p3 /);
+	});
+
+	it("default format for hwb source is hwb()", () => {
+		const c = swatch("hwb(240 0% 0%)");
+		expect(c.toString()).toBe("hwb(240 0% 0%)");
 	});
 });

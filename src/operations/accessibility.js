@@ -7,18 +7,25 @@
 //     walks HSL L (preserving hue/saturation) until the ratio meets
 //     the target. Future: add { space: 'oklch' } to walk OKLCh L.
 //
-// These operate on sRGB (legacy .rgb view); wide-gamut inputs are
-// gamut-mapped first via the .srgb getter.
+// These operate on displayable sRGB values. Wide-gamut inputs are
+// first gamut-mapped into sRGB before the metric is computed.
 
 import { Swatch, swatch } from "../core/swatch-class.js";
+import { inGamut, toGamut } from "./gamut.js";
 
 function toSwatch(input) {
 	return input instanceof Swatch ? input : swatch(input);
 }
 
+function toAccessibleSrgb(input) {
+	const s = toSwatch(input);
+	if (inGamut(s, "srgb")) return s.to("srgb");
+	return toGamut(s, { space: "srgb" });
+}
+
 // WCAG 2.1 relative luminance from gamma-encoded sRGB in [0,1].
 export function luminance(input) {
-	const s = toSwatch(input);
+	const s = toAccessibleSrgb(input);
 	const { r, g, b } = s.srgb;
 	const rl =
 		r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
@@ -60,10 +67,11 @@ export function ensureContrast(
 	other,
 	{ minRatio = 4.5, direction = "auto", step = 1 } = {}
 ) {
-	const cs = toSwatch(color);
-	const os = toSwatch(other);
+	const original = toSwatch(color);
+	const cs = toAccessibleSrgb(color);
+	const os = toAccessibleSrgb(other);
 
-	if (contrast(cs, os) >= minRatio) return cs;
+	if (contrast(cs, os) >= minRatio) return original;
 
 	let dir = direction;
 	if (dir === "auto") {
