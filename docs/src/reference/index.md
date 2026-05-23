@@ -44,3 +44,6 @@ swatch.try(userInput);                  // Swatch | null for live inputs
 ```
 
 Every instance is **immutable** — every transformation returns a new `swatch`.
+
+Not sure whether Swatch is the right level of tool for your project? Start with
+[Who is this library for?](./who-is-this-for/).
