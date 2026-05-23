@@ -5,7 +5,8 @@ eyebrow: "Reference · §02"
 ---
 
 `swatch(input)` accepts CSS Color 4 strings, legacy CSS, named colors, object
-literals, state objects, or an existing `Swatch` instance. Invalid input throws.
+literals, state objects, or an existing `Swatch` instance. Invalid input throws;
+use `swatch.try(input)` when you want `Swatch | null` instead.
 
 ## CSS strings
 
@@ -79,9 +80,18 @@ c.toString({ format: "hwb" });
 c.toString({ format: "color", space: "display-p3" });
 ```
 
+Everyday shortcuts are available too:
+
+```js
+c.hex();                                // "#3366cc"
+c.hex({ alpha: true });                 // "#3366ccff"
+c.rgb();                                // { r: 51, g: 102, b: 204 }
+c.css({ format: "oklch" });             // alias for toCss()
+```
+
 ## Error handling
 
-Invalid input throws — use `try/catch`:
+Invalid input throws:
 
 ```js
 try {
@@ -90,3 +100,20 @@ try {
   // handle
 }
 ```
+
+For live user input, use the safe helpers:
+
+```js
+const c = swatch.try("not a color");     // null
+swatch.isColor("oklch(0.7 0.15 240)");   // true
+```
+
+## Units cheat sheet
+
+| API surface | Units |
+| --- | --- |
+| `c.srgb`, `c.displayP3`, `color(display-p3 ...)` | `0..1` RGB channels |
+| `c.rgb()` and `{ r, g, b }` input | `0..255` RGB channels |
+| `hsl`, `hsv`, `hwb`, `hsluv` | hue degrees, percentages for the other channels |
+| `oklab.l`, `oklch.l` | `0..1` perceptual lightness |
+| `lab.l`, `lch.l`, `luv.l` | `0..100` CIE lightness |

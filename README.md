@@ -16,6 +16,20 @@ npm install swatch
 import swatch from "swatch";
 ```
 
+## Quick start
+
+```js
+const blue = swatch("#3b82f6");
+
+blue.lighten(0.1).hex();                         // perceptual OKLCh lighten
+blue.contrast("#ffffff");                        // WCAG 2.1 contrast ratio
+blue.isReadable("#ffffff");                      // AA body-text default
+blue.simulate(swatch.cvd.deutan).hex();          // colorblind simulation
+
+swatch.scale(["#f00", "#00f"]).colors(5, "hex"); // theme/data-viz ramps
+swatch.try(userInput);                           // Swatch | null
+```
+
 ## Creating a color
 
 `swatch(input)` accepts any of the usual CSS forms — including CSS Color 4 — object literals, or another `swatch`.
@@ -48,7 +62,25 @@ swatch({ h: 240, s: 100, l: 50, a: 0.5 });
 swatch({ space: "oklch", coords: [0.7, 0.15, 240] });
 ```
 
+Invalid input throws. For live text inputs and validation, use the safe helpers:
+
+```js
+const c = swatch.try("not a color");   // null
+swatch.isColor("oklch(0.7 0.15 240)"); // true
+```
+
 Instances are **immutable** — every operation returns a new `swatch`.
+
+Common serialization helpers are available for the everyday cases:
+
+```js
+const c = swatch("rgb(51 102 204 / 0.5)");
+
+c.hex();                  // "#3366cc"
+c.hex({ alpha: true });   // "#3366cc80"
+c.rgb();                  // { r: 51, g: 102, b: 204, a: 0.5 }
+c.css({ format: "oklch" });
+```
 
 ## Color spaces
 
@@ -85,6 +117,25 @@ swatch("#ff0000").to("oklch");
 // Swatch { space: "oklch", coords: [0.628, 0.258, 29.2], alpha: 1 }
 ```
 
+For autocomplete-friendly call sites, string constants are exposed:
+
+```js
+swatch("#ff0000").to(swatch.spaces.oklch);
+swatch("#ff0000").simulate(swatch.cvd.protan);
+```
+
+## Units cheat sheet
+
+| API surface | Units |
+| --- | --- |
+| `c.srgb`, `c.displayP3`, `color(display-p3 ...)` | `0..1` RGB channels |
+| `c.rgb()` and `{ r, g, b }` input | `0..255` RGB channels |
+| `hsl`, `hsv`, `hwb`, `hsluv` | hue degrees, percentages for the other channels |
+| `oklab.l`, `oklch.l` | `0..1` perceptual lightness |
+| `lab.l`, `lch.l`, `luv.l` | `0..100` CIE lightness |
+| `lighten` / `darken` | delta in OKLCh `L` (`0..1`) |
+| `saturate` / `desaturate` | delta in OKLCh `C` |
+
 ## Channels
 
 Address any channel with a string path:
@@ -97,6 +148,8 @@ c.get("alpha");     // 1
 
 c.set("oklch.h", 120);  // returns a new Swatch with hue = 120°
 ```
+
+Channel paths are typed in TypeScript, so typos like `"oklch.lightness"` are caught by the compiler.
 
 ## Manipulation
 
@@ -348,7 +401,14 @@ Pass `seed` for reproducible sequences (xorshift32).
 
 ## TypeScript
 
-Hand-written declarations ship in `types/swatch.d.ts` and are referenced by `package.json`. No configuration required.
+Hand-written declarations ship in `types/swatch.d.ts` and are referenced by `package.json`. No configuration required. Channel paths and constants are typed for autocomplete:
+
+```ts
+const c = swatch("#3366cc");
+c.get("oklch.l");          // ok
+c.to(swatch.spaces.oklch); // ok
+// c.get("oklch.lightness"); // TypeScript error
+```
 
 ## License
 

@@ -16,6 +16,10 @@ const SPACE_ALIASES = {
 	rgb: "srgb"
 };
 
+function foldCmyk({ c, m, y, k }) {
+	return [c + k - c * k, m + k - m * k, y + k - y * k];
+}
+
 function resolveSpaceId(token) {
 	if (SPACE_ALIASES[token]) return SPACE_ALIASES[token];
 	return token;
@@ -40,6 +44,9 @@ function parsePath(path) {
 	if (!hasSpace(spaceId)) {
 		throw new Error(`channel path: unknown space "${spaceToken}"`);
 	}
+	if (spaceId === "cmyk" && channel === "k") {
+		return { kind: "cmyk-k" };
+	}
 	const space = getSpace(spaceId);
 	const idx = space.channels.indexOf(channel);
 	if (idx < 0) {
@@ -53,6 +60,7 @@ function parsePath(path) {
 export function getChannel(swatch, path) {
 	const parsed = parsePath(path);
 	if (parsed.kind === "alpha") return swatch.alpha;
+	if (parsed.kind === "cmyk-k") return swatch.cmyk.k;
 	return swatch._getCoordsIn(parsed.spaceId)[parsed.index];
 }
 
@@ -63,6 +71,14 @@ export function setChannel(swatch, path, value) {
 			space: swatch.space,
 			coords: swatch.coords,
 			alpha: value
+		});
+	}
+	if (parsed.kind === "cmyk-k") {
+		const cmyk = swatch.cmyk;
+		return new Swatch({
+			space: "cmyk",
+			coords: foldCmyk({ ...cmyk, k: value }),
+			alpha: swatch.alpha
 		});
 	}
 	const coords = swatch._getCoordsIn(parsed.spaceId);

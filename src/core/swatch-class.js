@@ -15,12 +15,40 @@ import { makeState, cloneState } from "./state.js";
 import { convert, getSpace, listSpaces } from "./registry.js";
 import { formatCss } from "../format/css.js";
 
+function byteFromUnit(value) {
+	return Math.round(Math.max(0, Math.min(1, value)) * 255);
+}
+
+function parseEqualsOptions(options) {
+	if (typeof options === "number") return { epsilon: options };
+	if (options == null) return { epsilon: 1e-6 };
+	return {
+		epsilon: options.epsilon ?? options.tolerance ?? 1e-6,
+		space: options.space
+	};
+}
+
 export class Swatch {
 	constructor(state) {
 		if (!state || typeof state.space !== "string") {
 			throw new Error("Swatch: state must be { space, coords, alpha }");
 		}
-		this._state = makeState(state.space, state.coords, state.alpha);
+		// Validate the space up-front so invalid state objects fail at the
+		// boundary instead of producing a Swatch that explodes later during
+		// conversion or serialization.
+		getSpace(state.space);
+		if (!Array.isArray(state.coords) || state.coords.length !== 3) {
+			throw new Error("Swatch: coords must be a length-3 array");
+		}
+		const coords = state.coords.map(Number);
+		const alpha = state.alpha == null ? 1 : Number(state.alpha);
+		if (coords.some((value) => !Number.isFinite(value))) {
+			throw new Error("Swatch: coords must be finite numbers");
+		}
+		if (!Number.isFinite(alpha)) {
+			throw new Error("Swatch: alpha must be a finite number");
+		}
+		this._state = makeState(state.space, coords, alpha);
 		this._cache = new Map();
 		// Expose foundation fields directly for ergonomics.
 		this.space = this._state.space;
@@ -84,13 +112,21 @@ export class Swatch {
 	// the other swatch against this swatch's native coords. Different source
 	// spaces will round-trip through conversion so visually-equivalent
 	// colors compare equal.
-	equals(other, epsilon = 1e-6) {
-		if (!(other instanceof Swatch)) return false;
-		const coords = other._getCoordsIn(this._state.space);
-		if (Math.abs(coords[0] - this._state.coords[0]) > epsilon) return false;
-		if (Math.abs(coords[1] - this._state.coords[1]) > epsilon) return false;
-		if (Math.abs(coords[2] - this._state.coords[2]) > epsilon) return false;
-		if (Math.abs(other.alpha - this._state.alpha) > epsilon) return false;
+	equals(other, options = 1e-6) {
+		let rhs;
+		try {
+			rhs = other instanceof Swatch ? other : swatch(other);
+		} catch (_err) {
+			return false;
+		}
+		const { epsilon, space } = parseEqualsOptions(options);
+		const spaceId = space || this._state.space;
+		const lhsCoords = space ? this._getCoordsIn(spaceId) : this._state.coords;
+		const rhsCoords = rhs._getCoordsIn(spaceId);
+		if (Math.abs(rhsCoords[0] - lhsCoords[0]) > epsilon) return false;
+		if (Math.abs(rhsCoords[1] - lhsCoords[1]) > epsilon) return false;
+		if (Math.abs(rhsCoords[2] - lhsCoords[2]) > epsilon) return false;
+		if (Math.abs(rhs.alpha - this._state.alpha) > epsilon) return false;
 		return true;
 	}
 
@@ -191,6 +227,37 @@ export class Swatch {
 
 	toCss(opts) {
 		return formatCss(this, opts);
+	}
+
+	css(opts) {
+		return formatCss(this, opts);
+	}
+
+	hex(opts = {}) {
+		const includeAlpha =
+			typeof opts === "boolean" ? opts : opts?.alpha === true;
+		return formatCss(this, {
+			format: includeAlpha ? "hex-alpha" : "hex"
+		});
+	}
+
+	rgb(opts = {}) {
+		const alphaMode =
+			typeof opts === "boolean" ? opts : opts?.alpha ?? "auto";
+		const { r, g, b } = this.srgb;
+		const out = {
+			r: byteFromUnit(r),
+			g: byteFromUnit(g),
+			b: byteFromUnit(b)
+		};
+		if (
+			alphaMode === true ||
+			alphaMode === "always" ||
+			(alphaMode === "auto" && this.alpha < 1)
+		) {
+			out.a = this.alpha;
+		}
+		return out;
 	}
 
 	// ─── Channel get/set ───────────────────────────────────────────────

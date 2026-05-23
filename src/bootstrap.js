@@ -103,3 +103,47 @@ swatch.scale = scale;
 swatch.bezier = bezier;
 swatch.cubehelix = cubehelix;
 swatch.palettes = listPalettes;
+swatch.try = (input) => {
+	try {
+		return swatch(input);
+	} catch (_err) {
+		return null;
+	}
+};
+swatch.isColor = (input) => swatch.try(input) !== null;
+swatch.spaces = Object.freeze({
+	srgb: "srgb",
+	linearSrgb: "srgb-linear",
+	displayP3: "display-p3",
+	rec2020: "rec2020",
+	a98: "a98",
+	prophoto: "prophoto",
+	xyz: "xyz",
+	xyzD65: "xyz-d65",
+	xyzD50: "xyz-d50",
+	lab: "lab",
+	labD50: "lab-d50",
+	lch: "lch",
+	lchD50: "lch-d50",
+	oklab: "oklab",
+	oklch: "oklch",
+	hsl: "hsl",
+	hsv: "hsv",
+	hwb: "hwb",
+	cmyk: "cmyk",
+	luv: "luv",
+	hsluv: "hsluv"
+});
+swatch.cvd = Object.freeze({
+	protan: "protan",
+	protanopia: "protanopia",
+	protanomaly: "protanomaly",
+	deutan: "deutan",
+	deuteranopia: "deuteranopia",
+	deuteranomaly: "deuteranomaly",
+	tritan: "tritan",
+	tritanopia: "tritanopia",
+	tritanomaly: "tritanomaly",
+	achroma: "achroma",
+	achromatopsia: "achromatopsia"
+});

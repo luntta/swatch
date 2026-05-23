@@ -12,6 +12,7 @@ Read or write individual channels using a `"space.channel"` path syntax.
 c.get("oklch.l");        // lightness in OKLCh
 c.get("hsl.h");          // hue in HSL
 c.get("srgb.r");         // red in sRGB (0–1)
+c.get("cmyk.k");         // computed CMYK black
 c.get("alpha");          // alpha channel
 ```
 
@@ -22,8 +23,12 @@ Returns a new swatch (immutable):
 ```js
 c.set("oklch.l", 0.8);          // set OKLCh lightness to 0.8
 c.set("hsl.h", 120);            // set HSL hue to 120°
+c.set("cmyk.k", 0.5);           // adjust computed CMYK black
 c.set("alpha", 0.5);            // set alpha
 ```
+
+In TypeScript, channel paths are a string-literal union, so
+`"oklch.lightness"` is a compile-time error.
 
 ## .to()
 

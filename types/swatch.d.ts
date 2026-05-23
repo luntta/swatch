@@ -26,6 +26,55 @@ export type SpaceId =
 	| "luv"
 	| "hsluv";
 
+export interface SpaceConstants {
+	readonly srgb: "srgb";
+	readonly linearSrgb: "srgb-linear";
+	readonly displayP3: "display-p3";
+	readonly rec2020: "rec2020";
+	readonly a98: "a98";
+	readonly prophoto: "prophoto";
+	readonly xyz: "xyz";
+	readonly xyzD65: "xyz-d65";
+	readonly xyzD50: "xyz-d50";
+	readonly lab: "lab";
+	readonly labD50: "lab-d50";
+	readonly lch: "lch";
+	readonly lchD50: "lch-d50";
+	readonly oklab: "oklab";
+	readonly oklch: "oklch";
+	readonly hsl: "hsl";
+	readonly hsv: "hsv";
+	readonly hwb: "hwb";
+	readonly cmyk: "cmyk";
+	readonly luv: "luv";
+	readonly hsluv: "hsluv";
+}
+
+type RgbLikeSpaceId =
+	| "rgb"
+	| "srgb"
+	| "srgb-linear"
+	| "display-p3"
+	| "rec2020"
+	| "a98"
+	| "prophoto";
+type XyzLikeSpaceId = "xyz" | "xyz-d65" | "xyz-d50";
+type LabLikeSpaceId = "lab" | "lab-d50" | "oklab";
+type LchLikeSpaceId = "lch" | "lch-d50" | "oklch";
+
+export type ChannelPath =
+	| "alpha"
+	| `${RgbLikeSpaceId}.${"r" | "g" | "b"}`
+	| `${XyzLikeSpaceId}.${"x" | "y" | "z"}`
+	| `${LabLikeSpaceId}.${"l" | "a" | "b"}`
+	| `${LchLikeSpaceId}.${"l" | "c" | "h"}`
+	| `hsl.${"h" | "s" | "l"}`
+	| `hsv.${"h" | "s" | "v"}`
+	| `hwb.${"h" | "w" | "b"}`
+	| `hsluv.${"h" | "s" | "l"}`
+	| `luv.${"l" | "u" | "v"}`
+	| `cmyk.${"c" | "m" | "y" | "k"}`;
+
 // ─── Channel object shapes (returned by the per-space getters) ─────
 
 export interface SrgbChannels {
@@ -177,6 +226,20 @@ export type CVDType =
 	| "achroma"
 	| "achromatopsia";
 
+export interface CvdConstants {
+	readonly protan: "protan";
+	readonly protanopia: "protanopia";
+	readonly protanomaly: "protanomaly";
+	readonly deutan: "deutan";
+	readonly deuteranopia: "deuteranopia";
+	readonly deuteranomaly: "deuteranomaly";
+	readonly tritan: "tritan";
+	readonly tritanopia: "tritanopia";
+	readonly tritanomaly: "tritanomaly";
+	readonly achroma: "achroma";
+	readonly achromatopsia: "achromatopsia";
+}
+
 export type DeltaEMode = "76" | "94" | "2000" | "cmc" | "hyab" | "ok";
 
 export interface DeltaECmcOptions {
@@ -200,6 +263,24 @@ export interface EnsureContrastOptions {
 
 export interface MixOptions {
 	space?: SpaceId;
+}
+
+export interface EqualsOptions {
+	epsilon?: number;
+	/** Alias for epsilon. */
+	tolerance?: number;
+	/** Compare both colors in this space instead of the receiver's native space. */
+	space?: SpaceId;
+}
+
+export interface HexOptions {
+	/** Include alpha as #rrggbbaa. Default false. */
+	alpha?: boolean;
+}
+
+export interface RgbOptions {
+	/** Include `a`; default "auto" includes it only when alpha < 1. */
+	alpha?: boolean | "auto" | "always" | "never";
 }
 
 export interface SimulateOptions {
@@ -370,14 +451,18 @@ export interface Swatch {
 	// Core plumbing.
 	to(space: SpaceId): Swatch;
 	clone(): Swatch;
-	equals(other: Swatch, epsilon?: number): boolean;
+	equals(other: ColorInput, epsilon?: number): boolean;
+	equals(other: ColorInput, opts?: EqualsOptions): boolean;
 	toJSON(): { space: SpaceId; coords: [number, number, number]; alpha: number };
 	toString(opts?: FormatOptions): string;
 	toCss(opts?: FormatOptions): string;
+	css(opts?: FormatOptions): string;
+	hex(opts?: boolean | HexOptions): string;
+	rgb(opts?: boolean | RgbOptions): LegacyRgbInput;
 
 	// Channel get/set.
-	get(path: string): number;
-	set(path: string, value: number): Swatch;
+	get(path: ChannelPath): number;
+	set(path: ChannelPath, value: number): Swatch;
 
 	// Gamut.
 	inGamut(space?: SpaceId, opts?: { epsilon?: number }): boolean;
@@ -429,6 +514,14 @@ export interface Swatch {
 
 export interface SwatchFactory {
 	(input: ColorInput): Swatch;
+
+	// Safe parsing.
+	"try"(input: unknown): Swatch | null;
+	isColor(input: unknown): input is ColorInput;
+
+	// String constants for autocomplete-friendly call sites.
+	readonly spaces: SpaceConstants;
+	readonly cvd: CvdConstants;
 
 	// Temperature.
 	temperature(kelvin: number): Swatch;

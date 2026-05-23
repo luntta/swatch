@@ -35,11 +35,12 @@ c.simulate("deutan");                   // a new swatch, deuteranope view
 c.daltonize("deutan");                  // pre-corrected for deuteranopes
 c.contrast("#fff");                     // 4.78
 c.deltaE("#3366cd");                    // 0.18 (CIEDE2000)
-c.lighten(0.1).spin(45).toString({ format: "hex" });
+c.lighten(0.1).spin(45).hex();
 
 swatch("oklch(0.7 0.15 240)");         // CSS Color 4
 swatch("color(display-p3 1 0 0)");     // wide-gamut
 swatch.scale(["#00f", "#f00"]).colors(5);
+swatch.try(userInput);                  // Swatch | null for live inputs
 ```
 
 Every instance is **immutable** — every transformation returns a new `swatch`.
