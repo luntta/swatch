@@ -233,10 +233,20 @@ export class Swatch {
 		return formatCss(this, opts);
 	}
 
+	// sRGB view for the lossy display helpers (`hex`, `rgb`). Wide-gamut
+	// sources are perceptually mapped into sRGB (CSS Color 4 chroma
+	// reduction) by default so `.hex()` / `.rgb()` never silently clip
+	// chromaticity. Pass `gamut: false` to fall back to a raw clamp.
+	_displaySrgb(gamutMap = true) {
+		if (!gamutMap || this.inGamut("srgb")) return this;
+		return this.toGamut({ space: "srgb", method: "css4" });
+	}
+
 	hex(opts = {}) {
 		const includeAlpha =
 			typeof opts === "boolean" ? opts : opts?.alpha === true;
-		return formatCss(this, {
+		const gamutMap = typeof opts === "boolean" ? true : opts?.gamut !== false;
+		return formatCss(this._displaySrgb(gamutMap), {
 			format: includeAlpha ? "hex-alpha" : "hex"
 		});
 	}
@@ -244,7 +254,8 @@ export class Swatch {
 	rgb(opts = {}) {
 		const alphaMode =
 			typeof opts === "boolean" ? opts : opts?.alpha ?? "auto";
-		const { r, g, b } = this.srgb;
+		const gamutMap = typeof opts === "boolean" ? true : opts?.gamut !== false;
+		const { r, g, b } = this._displaySrgb(gamutMap).srgb;
 		const out = {
 			r: byteFromUnit(r),
 			g: byteFromUnit(g),
@@ -273,6 +284,18 @@ export class Swatch {
 	}
 
 	// ─── Gamut ─────────────────────────────────────────────────────────
+
+	// The smallest standard RGB gamut that contains this color, walking the
+	// nested ladder srgb ⊂ display-p3 ⊂ rec2020 ⊂ prophoto. Returns null for
+	// imaginary colors that fall outside even ProPhoto. Useful for noticing
+	// out-of-sRGB colors before a `.hex()` / `.rgb()` round-trip maps them in.
+	get gamut() {
+		const ladder = ["srgb", "display-p3", "rec2020", "prophoto"];
+		for (const id of ladder) {
+			if (this.inGamut(id)) return id;
+		}
+		return null;
+	}
 
 	inGamut(spaceId, opts) {
 		return _inGamut(this, spaceId, opts);

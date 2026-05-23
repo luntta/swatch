@@ -45,4 +45,33 @@ describe("v3 DX helpers", () => {
 		expect(darker.space).toBe("cmyk");
 		expect(darker.srgb.r).toBeLessThan(c.srgb.r);
 	});
+
+	it("reports the smallest containing gamut", () => {
+		expect(swatch("#3366cc").gamut).toBe("srgb");
+		expect(swatch("color(display-p3 1 0 0)").gamut).toBe("display-p3");
+		expect(swatch("color(rec2020 0.9 0.1 0.1)").gamut).toBe("rec2020");
+		expect(swatch("color(xyz 0.5 0 0)").gamut).toBe(null);
+	});
+
+	it("hex()/rgb() gamut-map wide-gamut colors by default", () => {
+		const p3red = swatch("color(display-p3 1 0 0)");
+		expect(p3red.inGamut("srgb")).toBe(false);
+
+		// Default: perceptual css4 mapping, not a raw clip to #ff0000.
+		expect(p3red.hex()).toBe("#ff0b0b");
+		expect(p3red.rgb()).toEqual({ r: 255, g: 11, b: 11 });
+
+		// Escape hatch: raw clamp preserves the old behavior.
+		expect(p3red.hex({ gamut: false })).toBe("#ff0000");
+		expect(p3red.rgb({ gamut: false })).toEqual({ r: 255, g: 0, b: 0 });
+
+		// css() is unchanged: lossless source-space round-trip.
+		expect(p3red.css()).toBe("color(display-p3 1 0 0)");
+	});
+
+	it("leaves in-gamut colors untouched when serializing", () => {
+		const c = swatch("#3366cc");
+		expect(c.hex()).toBe("#3366cc");
+		expect(c.rgb()).toEqual({ r: 51, g: 102, b: 204 });
+	});
 });

@@ -276,11 +276,15 @@ export interface EqualsOptions {
 export interface HexOptions {
 	/** Include alpha as #rrggbbaa. Default false. */
 	alpha?: boolean;
+	/** Map wide-gamut colors into sRGB before serializing. Default true. */
+	gamut?: boolean;
 }
 
 export interface RgbOptions {
 	/** Include `a`; default "auto" includes it only when alpha < 1. */
 	alpha?: boolean | "auto" | "always" | "never";
+	/** Map wide-gamut colors into sRGB before serializing. Default true. */
+	gamut?: boolean;
 }
 
 export interface SimulateOptions {
@@ -465,6 +469,8 @@ export interface Swatch {
 	set(path: ChannelPath, value: number): Swatch;
 
 	// Gamut.
+	/** Smallest standard RGB gamut containing this color (srgb ⊂ display-p3 ⊂ rec2020 ⊂ prophoto), or null if outside all of them. */
+	readonly gamut: SpaceId | null;
 	inGamut(space?: SpaceId, opts?: { epsilon?: number }): boolean;
 	toGamut(opts?: GamutOptions): Swatch;
 

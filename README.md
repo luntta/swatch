@@ -82,6 +82,8 @@ c.rgb();                  // { r: 51, g: 102, b: 204, a: 0.5 }
 c.css({ format: "oklch" });
 ```
 
+`hex()` and `rgb()` map wide-gamut colors into sRGB perceptually (CSS Color 4 chroma reduction) before serializing, so they never silently clip chromaticity. Pass `{ gamut: false }` for a raw clamp, or use `css()` to keep the color in its source space losslessly. See [Gamut mapping](#gamut-mapping).
+
 ## Color spaces
 
 Each instance exposes a getter for every registered space. Conversions go through CIE XYZ D65 and are lazily memoized on the instance.
@@ -259,13 +261,16 @@ swatch.palettes();            // all registered palette names
 ```js
 const p3red = swatch("color(display-p3 1 0 0)");
 
+p3red.gamut;                  // "display-p3" — smallest standard gamut that fits
 p3red.inGamut("srgb");        // false
 p3red.toGamut({ space: "srgb" });
 p3red.toGamut({ space: "srgb", method: "clip" });       // naive clipping
 p3red.toGamut({ space: "srgb", method: "css4" });       // CSS Color 4 binary chroma reduction (default)
 ```
 
-The `.srgb` / `.linearSrgb` / `.hsl` getters return raw conversions, so wide-gamut sources can produce out-of-range values. `c.toString({ format: "hex" })` clips to a valid 6-digit hex for presentation (which drops chromaticity). Use `toGamut` when you need a proper, perceptually-minimal remapping.
+`.gamut` reports the smallest standard gamut containing the color, walking `srgb ⊂ display-p3 ⊂ rec2020 ⊂ prophoto` (or `null` for imaginary colors). It's a quick way to notice an out-of-sRGB color before serializing.
+
+The `.srgb` / `.linearSrgb` / `.hsl` getters return raw conversions, so wide-gamut sources can produce out-of-range values — they give you the exact math, not a display-ready color. The presentation helpers are gamut-aware: `c.hex()` and `c.rgb()` perceptually map into sRGB first (pass `{ gamut: false }` for the old raw clamp). `c.toString({ format: "hex" })` / `c.toCss(...)` still clip naively. Reach for `toGamut` directly when you want to control the target space or method.
 
 ## Colorblind simulation
 

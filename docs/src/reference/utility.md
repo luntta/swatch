@@ -49,6 +49,10 @@ c.hex({ alpha: true });                  // "#3366ccff"
 c.rgb();                                 // { r: 51, g: 102, b: 204 }
 ```
 
+`hex()` and `rgb()` perceptually map wide-gamut colors into sRGB before
+serializing (pass `{ gamut: false }` for a raw clamp). `toString()` / `toCss()`
+do not — they clip naively. See [Wide-gamut & gamut mapping](/reference/wide-gamut/).
+
 ## TypeScript
 
 Hand-written declarations ship in `types/swatch.d.ts` and are referenced by

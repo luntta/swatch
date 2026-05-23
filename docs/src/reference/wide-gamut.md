@@ -26,6 +26,8 @@ p3.srgb;              // { r: 1.093, g: -0.227, b: -0.150 } — out of range!
 ## Gamut checking
 
 ```js
+c.gamut;                    // smallest containing gamut: "srgb" | "display-p3"
+                            //   | "rec2020" | "prophoto" | null
 c.inGamut("srgb");          // true/false
 c.inGamut("display-p3");
 ```
@@ -48,5 +50,8 @@ c.toGamut({ space: "display-p3", method: "css4" });
 | `oklch-chroma` | Alias for `css4` |
 | `clip` | Hard clamp to [0, 1] per channel |
 
-Always use `.toGamut()` before converting wide-gamut colors to hex or sRGB CSS
-for display.
+The `.hex()` and `.rgb()` helpers already apply `css4` mapping to sRGB for you,
+so they are display-ready for wide-gamut sources (pass `{ gamut: false }` to opt
+out). Use `.toGamut()` directly when you need a different target space or method,
+or before reading the raw `.srgb` / `.toString({ format: "hex" })` math, which do
+not gamut-map.
