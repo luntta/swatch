@@ -70,6 +70,7 @@ class Manipulate extends HTMLElement {
 		const hex = fmtHex(c);
 		this.chip.style.background = hex;
 		this.hexBtn.textContent = hex;
+		this.hexBtn.setAttribute("aria-label", `Copy manipulated color ${hex}`);
 
 		for (const k of ["lighten", "saturate", "spin"]) {
 			const v = +this.inputs[k].value;

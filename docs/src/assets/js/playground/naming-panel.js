@@ -29,9 +29,11 @@ class NamingPanel extends HTMLElement {
 			this.nameEl.textContent = name;
 			this.chip.style.background = hex;
 			this.hexEl.textContent = hex;
+			this.hexEl.setAttribute("aria-label", `Copy named color hex ${hex}`);
 			this.deEl.textContent = `ΔE ${deltaE.toFixed(2)}`;
 		} catch (e) {
 			this.nameEl.textContent = "—";
+			this.hexEl.setAttribute("aria-label", "Named color unavailable");
 		}
 	}
 }

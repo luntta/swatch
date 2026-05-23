@@ -77,17 +77,17 @@
 	--ink: #09090b;
 	--ink-2: #18181b;
 	--ink-3: #52525b;
-	--ink-4: #a1a1aa;
-	--ink-5: #d4d4d8;
+	--ink-4: #6b6b75;
+	--ink-5: #a1a1aa;
 
 	--border: #e4e4e7;
 	--border-soft: #ededee;
 	--border-strong: #d4d4d8;
 
 	/* Functional colors — muted */
-	--ok: #16a34a;
+	--ok: #15803d;
 	--warn: #b45309;
-	--err: #dc2626;
+	--err: #b91c1c;
 
 	/* The UI has no hue of its own. Buttons and accents use ink. */
 	--accent: var(--ink);
@@ -113,8 +113,8 @@
 	--ink: #fafafa;
 	--ink-2: #e4e4e7;
 	--ink-3: #a1a1aa;
-	--ink-4: #71717a;
-	--ink-5: #3f3f46;
+	--ink-4: #a1a1aa;
+	--ink-5: #71717a;
 
 	--border: #1f1f23;
 	--border-soft: #18181b;

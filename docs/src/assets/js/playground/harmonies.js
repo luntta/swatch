@@ -39,13 +39,18 @@ class Harmonies extends HTMLElement {
 			btn.className = "harmonies__tab";
 			btn.textContent = t.label;
 			btn.dataset.key = t.key;
+			btn.setAttribute("aria-pressed", t.key === this.active ? "true" : "false");
 			if (t.key === this.active) btn.classList.add("is-active");
 			btn.addEventListener("click", () => {
 				this.active = t.key;
 				this.tabs
 					.querySelectorAll(".harmonies__tab")
 					.forEach((b) =>
-						b.classList.toggle("is-active", b.dataset.key === t.key)
+						{
+							const active = b.dataset.key === t.key;
+							b.classList.toggle("is-active", active);
+							b.setAttribute("aria-pressed", active ? "true" : "false");
+						}
 					);
 				this.render();
 			});
@@ -80,6 +85,7 @@ class Harmonies extends HTMLElement {
 				<span class="h-chip__swatch"></span>
 				<span class="h-chip__hex">${hex}</span>
 			`;
+			chip.setAttribute("aria-label", `Copy harmony color ${hex}. Shift click to promote to root.`);
 			chip.addEventListener("click", (e) => {
 				if (e.shiftKey) {
 					setRoot(tc);

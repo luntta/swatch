@@ -35,6 +35,7 @@ class TintShade extends HTMLElement {
 			chip.className = "ts-chip";
 			chip.style.background = hex;
 			chip.title = `${hex} (${t.toFixed(2)})`;
+			chip.setAttribute("aria-label", `Copy ${hex} at ${t.toFixed(2)}`);
 			chip.addEventListener("click", () => copy(hex));
 			container.appendChild(chip);
 		}

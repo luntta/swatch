@@ -5,12 +5,19 @@
 import swatch from "../lib/swatch.js";
 import { subscribe, getRoot } from "./state.js";
 import { copy, fmtHex } from "./format.js";
+import {
+	replaceColorAtCaret,
+	setPickerColor,
+	syncPickerFromInput,
+} from "./picker-utils.js";
 
 const CHIP_COUNT = 9;
 
 class ScalePanel extends HTMLElement {
 	connectedCallback() {
 		this.stopsInput = this.querySelector("[data-scale-stops]");
+		this.stopPicker = this.querySelector("[data-scale-stop-picker]");
+		this.stopPickerChip = this.querySelector("[data-scale-stop-picker-chip]");
 		this.paletteSelect = this.querySelector("[data-scale-palette]");
 		this.modeSelect = this.querySelector("[data-scale-mode]");
 		this.chips = this.querySelector("[data-scale-chips]");
@@ -28,6 +35,18 @@ class ScalePanel extends HTMLElement {
 
 		this.stopsInput.addEventListener("input", () => {
 			this.paletteSelect.value = "";
+			syncPickerFromInput(this.stopPicker, this.stopPickerChip, this.stopsInput, ",");
+			this.render();
+		});
+		["click", "keyup", "focus"].forEach((eventName) => {
+			this.stopsInput.addEventListener(eventName, () => {
+				syncPickerFromInput(this.stopPicker, this.stopPickerChip, this.stopsInput, ",");
+			});
+		});
+		this.stopPicker.addEventListener("input", () => {
+			this.paletteSelect.value = "";
+			replaceColorAtCaret(this.stopsInput, this.stopPicker.value, ",");
+			setPickerColor(this.stopPicker, this.stopPickerChip, this.stopPicker.value);
 			this.render();
 		});
 		this.paletteSelect.addEventListener("change", () => this.render());
@@ -39,6 +58,7 @@ class ScalePanel extends HTMLElement {
 			if (!this._seeded) {
 				this._seeded = true;
 				this.stopsInput.value = fmtHex(c) + ", " + fmtHex(c.spin(180));
+				setPickerColor(this.stopPicker, this.stopPickerChip, c);
 			}
 			this.render();
 		});
@@ -88,6 +108,7 @@ class ScalePanel extends HTMLElement {
 			chip.className = "scale-chip";
 			chip.style.background = hex;
 			chip.title = hex;
+			chip.setAttribute("aria-label", `Copy scale color ${hex}`);
 			chip.addEventListener("click", () => copy(hex));
 			this.chips.appendChild(chip);
 		});

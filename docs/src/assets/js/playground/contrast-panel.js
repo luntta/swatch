@@ -13,6 +13,8 @@ class ContrastPanel extends HTMLElement {
 		this.bgInput = this.querySelector("[data-contrast-bg]");
 		this.fgDot = this.querySelector("[data-contrast-fg-dot]");
 		this.bgDot = this.querySelector("[data-contrast-bg-dot]");
+		this.fgPicker = this.querySelector("[data-contrast-fg-picker]");
+		this.bgPicker = this.querySelector("[data-contrast-bg-picker]");
 		this.ratio = this.querySelector("[data-contrast-ratio]");
 		this.apca = this.querySelector("[data-contrast-apca]");
 		this.badges = this.querySelector("[data-contrast-badges]");
@@ -31,6 +33,20 @@ class ContrastPanel extends HTMLElement {
 		this.bgInput.addEventListener("input", () => {
 			try {
 				this.bg = swatch(this.bgInput.value.trim());
+				this.render();
+			} catch (e) {}
+		});
+		this.fgPicker.addEventListener("input", () => {
+			try {
+				this.fg = swatch(this.fgPicker.value);
+				this.fgInput.value = fmtHex(this.fg);
+				this.render();
+			} catch (e) {}
+		});
+		this.bgPicker.addEventListener("input", () => {
+			try {
+				this.bg = swatch(this.bgPicker.value);
+				this.bgInput.value = fmtHex(this.bg);
 				this.render();
 			} catch (e) {}
 		});
@@ -74,6 +90,8 @@ class ContrastPanel extends HTMLElement {
 		this.preview.style.setProperty("--c-bg", bgHex);
 		this.fgDot.style.background = fgHex;
 		this.bgDot.style.background = bgHex;
+		this.fgPicker.value = fgHex;
+		this.bgPicker.value = bgHex;
 
 		const ratio = this.fg.contrast(this.bg);
 		this.ratio.textContent = ratio.toFixed(2) + ":1";

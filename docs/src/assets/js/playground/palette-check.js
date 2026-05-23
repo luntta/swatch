@@ -5,10 +5,17 @@
 import swatch from "../lib/swatch.js";
 import { subscribe } from "./state.js";
 import { fmtHex } from "./format.js";
+import {
+	replaceColorAtCaret,
+	setPickerColor,
+	syncPickerFromInput,
+} from "./picker-utils.js";
 
 class PaletteCheck extends HTMLElement {
 	connectedCallback() {
 		this.input = this.querySelector("[data-palette-input]");
+		this.picker = this.querySelector("[data-palette-picker]");
+		this.pickerChip = this.querySelector("[data-palette-picker-chip]");
 		this.cvd = this.querySelector("[data-palette-cvd]");
 		this.min = this.querySelector("[data-palette-min]");
 		this.report = this.querySelector("[data-palette-report]");
@@ -20,10 +27,24 @@ class PaletteCheck extends HTMLElement {
 		[this.input, this.cvd, this.min].forEach((el) =>
 			el.addEventListener("input", () => this.render())
 		);
+		this.input.addEventListener("input", () => {
+			syncPickerFromInput(this.picker, this.pickerChip, this.input);
+		});
+		["click", "keyup", "focus"].forEach((eventName) => {
+			this.input.addEventListener(eventName, () => {
+				syncPickerFromInput(this.picker, this.pickerChip, this.input);
+			});
+		});
+		this.picker.addEventListener("input", () => {
+			replaceColorAtCaret(this.input, this.picker.value);
+			setPickerColor(this.picker, this.pickerChip, this.picker.value);
+			this.render();
+		});
 
 		// re-render once whenever the root changes too (palette is independent
 		// but min should still re-evaluate cleanly)
 		this._unsub = subscribe(() => this.render());
+		syncPickerFromInput(this.picker, this.pickerChip, this.input);
 		this.render();
 	}
 

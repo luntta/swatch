@@ -10,23 +10,25 @@ export function attachSpecimen(root) {
 	const el = root.querySelector("[data-specimen]");
 	if (!el) return;
 	const chip = el.querySelector("[data-specimen-chip]");
-	const dds = el.querySelectorAll("dd[data-format]");
+	const buttons = el.querySelectorAll("button[data-format]");
 
-	dds.forEach((dd) => {
-		dd.addEventListener("click", () => copy(dd.textContent));
+	buttons.forEach((button) => {
+		button.addEventListener("click", () => copy(button.textContent));
 	});
 
 	subscribe((c) => {
 		if (!c) return;
 		chip.style.background = fmtHex(c);
-		dds.forEach((dd) => {
-			const fmt = dd.dataset.format;
+		buttons.forEach((button) => {
+			const fmt = button.dataset.format;
 			const fn = FORMATS[fmt];
 			if (fn) {
 				try {
-					dd.textContent = fn(c);
+					button.textContent = fn(c);
+					button.setAttribute("aria-label", `Copy ${fmt}: ${button.textContent}`);
 				} catch (e) {
-					dd.textContent = "—";
+					button.textContent = "—";
+					button.setAttribute("aria-label", `Copy ${fmt}`);
 				}
 			}
 		});

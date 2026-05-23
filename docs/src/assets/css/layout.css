@@ -59,6 +59,44 @@
 .site-nav a[aria-current="page"] {
 	color: var(--ink);
 }
+.site-nav a[aria-current="page"] {
+	font-weight: 600;
+}
+
+.header-color {
+	position: relative;
+	display: inline-block;
+	width: 28px;
+	height: 28px;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	background: var(--header-color, #3b82f6);
+	box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 8%, transparent);
+	overflow: hidden;
+	cursor: pointer;
+	transition: border-color var(--dur) var(--ease),
+		transform var(--dur-fast) var(--ease);
+}
+.header-color:hover {
+	border-color: var(--ink);
+}
+.header-color:focus-within {
+	outline: 2px solid var(--ink);
+	outline-offset: 2px;
+}
+.header-color:active {
+	transform: translateY(0.5px);
+}
+.header-color input[type="color"] {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
+}
 
 .theme-toggle {
 	width: 28px;
@@ -157,7 +195,7 @@
 	max-height: calc(100dvh - 7rem);
 	overflow-y: auto;
 }
-.reference-side h2 {
+.reference-side__title {
 	font-family: var(--font-mono);
 	font-size: var(--fs-xs);
 	letter-spacing: var(--track-caps);

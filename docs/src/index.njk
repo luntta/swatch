@@ -22,19 +22,19 @@ description: "An interactive playground for Swatch — a color library with firs
 			</p>
 			<div class="hero__cta">
 				<a class="btn btn--primary" href="#playground">Open the playground</a>
-				<a class="btn btn--ghost" href="{{ '/reference/' | absUrl }}">Read the reference</a>
+				<a class="btn btn--ghost" href="{{ '/reference/' | relUrl(page.url) }}">Read the reference</a>
 			</div>
 		</div>
 
 		<aside class="specimen" data-specimen>
 			<div class="specimen__chip" data-specimen-chip></div>
 			<dl class="specimen__meta">
-				<dt>Hex</dt>   <dd data-format="hex">—</dd>
-				<dt>RGB</dt>   <dd data-format="rgb">—</dd>
-				<dt>HSL</dt>   <dd data-format="hsl">—</dd>
-				<dt>HWB</dt>   <dd data-format="hwb">—</dd>
-				<dt>OKLCh</dt> <dd data-format="oklch">—</dd>
-				<dt>Lab</dt>   <dd data-format="lab">—</dd>
+				<dt>Hex</dt>   <dd><button type="button" data-format="hex">—</button></dd>
+				<dt>RGB</dt>   <dd><button type="button" data-format="rgb">—</button></dd>
+				<dt>HSL</dt>   <dd><button type="button" data-format="hsl">—</button></dd>
+				<dt>HWB</dt>   <dd><button type="button" data-format="hwb">—</button></dd>
+				<dt>OKLCh</dt> <dd><button type="button" data-format="oklch">—</button></dd>
+				<dt>Lab</dt>   <dd><button type="button" data-format="lab">—</button></dd>
 			</dl>
 		</aside>
 	</section>
@@ -55,10 +55,13 @@ description: "An interactive playground for Swatch — a color library with firs
 		<t-color-input>
 			<div class="color-input">
 				<div class="color-bar">
-					<label class="color-bar__chip" data-bar-chip>
-						<input type="color" data-color-picker aria-label="Native color picker" />
+					<label class="color-bar__chip color-picker-chip" data-bar-chip>
+						<span class="visually-hidden">Pick root color</span>
+						<input id="root-color-picker" type="color" data-color-picker aria-label="Native color picker" />
 					</label>
+					<label class="visually-hidden" for="root-color-input">Root color</label>
 					<input
+						id="root-color-input"
 						class="color-bar__input"
 						type="text"
 						data-color-text
@@ -68,7 +71,7 @@ description: "An interactive playground for Swatch — a color library with firs
 						aria-label="Root color"
 					/>
 					<div class="color-bar__actions">
-						<button class="icon-btn" type="button" data-copy title="Copy (C)">⎘</button>
+						<button class="icon-btn" type="button" data-copy title="Copy (C)" aria-label="Copy root color">⎘</button>
 					</div>
 				</div>
 				<button class="btn btn--ghost" type="button" data-randomize>
@@ -173,16 +176,22 @@ description: "An interactive playground for Swatch — a color library with firs
 				</div>
 				<div class="contrast__panel">
 					<div class="contrast__pickers">
-						<label>
-							<span>Foreground</span>
-							<input type="text" data-contrast-fg spellcheck="false" />
-							<span class="swatch-dot" data-contrast-fg-dot></span>
-						</label>
-						<label>
-							<span>Background</span>
-							<input type="text" data-contrast-bg spellcheck="false" />
-							<span class="swatch-dot" data-contrast-bg-dot></span>
-						</label>
+						<div class="contrast__picker-row">
+							<label for="contrast-fg">Foreground</label>
+							<input id="contrast-fg" type="text" data-contrast-fg spellcheck="false" />
+							<span class="swatch-dot color-picker-chip" data-contrast-fg-dot>
+								<label class="visually-hidden" for="contrast-fg-picker">Pick foreground color</label>
+								<input id="contrast-fg-picker" type="color" data-contrast-fg-picker aria-label="Pick foreground color" />
+							</span>
+						</div>
+						<div class="contrast__picker-row">
+							<label for="contrast-bg">Background</label>
+							<input id="contrast-bg" type="text" data-contrast-bg spellcheck="false" />
+							<span class="swatch-dot color-picker-chip" data-contrast-bg-dot>
+								<label class="visually-hidden" for="contrast-bg-picker">Pick background color</label>
+								<input id="contrast-bg-picker" type="color" data-contrast-bg-picker aria-label="Pick background color" />
+							</span>
+						</div>
 					</div>
 					<div class="contrast__metrics">
 						<div class="metric">
@@ -295,12 +304,18 @@ description: "An interactive playground for Swatch — a color library with firs
 			<div class="blend">
 				<div class="blend__inputs">
 					<div class="blend__color">
-						<span class="label-mono">Blend with</span>
-						<input type="text" data-blend-input value="#2563eb" spellcheck="false" />
+						<label class="label-mono" for="blend-input">Blend with</label>
+						<div class="color-field">
+							<input id="blend-input" type="text" data-blend-input value="#2563eb" spellcheck="false" />
+							<span class="color-field__picker" data-blend-picker-chip>
+								<label class="visually-hidden" for="blend-picker">Pick blend color</label>
+								<input id="blend-picker" type="color" data-blend-picker value="#2563eb" aria-label="Pick blend color" />
+							</span>
+						</div>
 					</div>
 					<div class="blend__color">
-						<span class="label-mono">Mode</span>
-						<select data-blend-mode>
+						<label class="label-mono" for="blend-mode">Mode</label>
+						<select id="blend-mode" data-blend-mode>
 							<option value="normal">Normal</option>
 							<option value="multiply" selected>Multiply</option>
 							<option value="screen">Screen</option>
@@ -364,27 +379,33 @@ description: "An interactive playground for Swatch — a color library with firs
 		<t-scale-panel>
 			<div class="scale-panel">
 				<div class="scale-panel__form">
-					<label>
-						<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Stops</span>
-						<input type="text" data-scale-stops spellcheck="false"
-							placeholder="#e41a1c, #377eb8, #4daf4a" />
-					</label>
+					<div>
+						<label class="label-mono" for="scale-stops" style="display:block; margin-bottom:var(--s-2);">Stops</label>
+						<div class="color-list-field">
+							<input id="scale-stops" type="text" data-scale-stops spellcheck="false"
+								placeholder="#e41a1c, #377eb8, #4daf4a" />
+							<span class="color-field__picker" data-scale-stop-picker-chip>
+								<label class="visually-hidden" for="scale-stop-picker">Pick scale stop color</label>
+								<input id="scale-stop-picker" type="color" data-scale-stop-picker aria-label="Pick scale stop color" />
+							</span>
+						</div>
+					</div>
 					<div class="scale-panel__row">
-						<label>
-							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Palette</span>
-							<select data-scale-palette>
+						<div>
+							<label class="label-mono" for="scale-palette" style="display:block; margin-bottom:var(--s-2);">Palette</label>
+							<select id="scale-palette" data-scale-palette>
 								<option value="">Custom stops</option>
 							</select>
-						</label>
-						<label>
-							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Mode</span>
-							<select data-scale-mode>
+						</div>
+						<div>
+							<label class="label-mono" for="scale-mode" style="display:block; margin-bottom:var(--s-2);">Mode</label>
+							<select id="scale-mode" data-scale-mode>
 								<option value="oklab" selected>OKLab</option>
 								<option value="oklch">OKLCh</option>
 								<option value="lab">Lab</option>
 								<option value="srgb">sRGB</option>
 							</select>
-						</label>
+						</div>
 					</div>
 				</div>
 				<div class="scale-panel__strip" data-scale-chips></div>
@@ -477,26 +498,33 @@ description: "An interactive playground for Swatch — a color library with firs
 		<t-palette-check>
 			<div class="palette">
 				<div class="palette__form">
-					<textarea data-palette-input spellcheck="false"
+					<label class="label-mono" for="palette-input">Colors</label>
+					<div class="color-list-field color-list-field--textarea">
+						<textarea id="palette-input" data-palette-input spellcheck="false"
 >#e41a1c
 #377eb8
 #4daf4a
 #984ea3
 #ff7f00</textarea>
+						<span class="color-field__picker" data-palette-picker-chip>
+							<label class="visually-hidden" for="palette-picker">Pick palette color</label>
+							<input id="palette-picker" type="color" data-palette-picker aria-label="Pick palette color" />
+						</span>
+					</div>
 					<div class="palette__row">
-						<label>
-							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">CVD</span>
-							<select data-palette-cvd>
+						<div>
+							<label class="label-mono" for="palette-cvd" style="display:block; margin-bottom:var(--s-2);">CVD</label>
+							<select id="palette-cvd" data-palette-cvd>
 								<option value="deutan" selected>Deutan</option>
 								<option value="protan">Protan</option>
 								<option value="tritan">Tritan</option>
 								<option value="achroma">Achroma</option>
 							</select>
-						</label>
-						<label>
-							<span class="label-mono" style="display:block; margin-bottom:var(--s-2);">Min ΔE</span>
-							<input type="number" min="1" max="50" step="1" value="11" data-palette-min />
-						</label>
+						</div>
+						<div>
+							<label class="label-mono" for="palette-min" style="display:block; margin-bottom:var(--s-2);">Min ΔE</label>
+							<input id="palette-min" type="number" min="1" max="50" step="1" value="11" data-palette-min />
+						</div>
 					</div>
 				</div>
 				<div class="palette__report" data-palette-report>
@@ -542,12 +570,20 @@ description: "An interactive playground for Swatch — a color library with firs
 		<t-delta-e>
 			<div class="deltae">
 				<div class="deltae__pair">
-					<span class="swatch-dot" data-de-dot="a"></span>
-					<input type="text" data-de-input="a" spellcheck="false" />
+					<span class="swatch-dot color-picker-chip" data-de-dot="a">
+						<label class="visually-hidden" for="deltae-picker-a">Pick first delta E color</label>
+						<input id="deltae-picker-a" type="color" data-de-picker="a" aria-label="Pick first delta E color" />
+					</span>
+					<label class="visually-hidden" for="deltae-input-a">First delta E color</label>
+					<input id="deltae-input-a" type="text" data-de-input="a" spellcheck="false" />
 				</div>
 				<div class="deltae__pair">
-					<span class="swatch-dot" data-de-dot="b"></span>
-					<input type="text" data-de-input="b" spellcheck="false" />
+					<span class="swatch-dot color-picker-chip" data-de-dot="b">
+						<label class="visually-hidden" for="deltae-picker-b">Pick second delta E color</label>
+						<input id="deltae-picker-b" type="color" data-de-picker="b" aria-label="Pick second delta E color" />
+					</span>
+					<label class="visually-hidden" for="deltae-input-b">Second delta E color</label>
+					<input id="deltae-input-b" type="text" data-de-input="b" spellcheck="false" />
 				</div>
 				<div class="deltae__result">
 					<span class="metric__label">ΔE</span>

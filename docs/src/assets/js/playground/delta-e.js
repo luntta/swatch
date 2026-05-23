@@ -51,17 +51,26 @@ class DeltaE extends HTMLElement {
 			a: this.querySelector('[data-de-dot="a"]'),
 			b: this.querySelector('[data-de-dot="b"]'),
 		};
+		this.pickers = {
+			a: this.querySelector('[data-de-picker="a"]'),
+			b: this.querySelector('[data-de-picker="b"]'),
+		};
 		this.value = this.querySelector("[data-de-value]");
 		this.label = this.querySelector("[data-de-label]");
 		this.modes = this.querySelector("[data-de-modes]");
 		this.mode = "2000";
 
 		this.modes.querySelectorAll("button").forEach((btn) => {
+			btn.setAttribute("aria-pressed", btn.dataset.mode === this.mode ? "true" : "false");
 			btn.addEventListener("click", () => {
 				this.mode = btn.dataset.mode;
 				this.modes
 					.querySelectorAll("button")
-					.forEach((b) => b.classList.toggle("is-active", b === btn));
+					.forEach((b) => {
+						const active = b === btn;
+						b.classList.toggle("is-active", active);
+						b.setAttribute("aria-pressed", active ? "true" : "false");
+					});
 				this.render();
 			});
 		});
@@ -69,6 +78,12 @@ class DeltaE extends HTMLElement {
 		Object.values(this.inputs).forEach((i) =>
 			i.addEventListener("input", () => this.render())
 		);
+		Object.entries(this.pickers).forEach(([key, picker]) => {
+			picker.addEventListener("input", () => {
+				this.inputs[key].value = picker.value;
+				this.render();
+			});
+		});
 
 		// `a` tracks the root color; `b` is user-controlled but seeded
 		// with the root's complement on first run.
@@ -95,6 +110,8 @@ class DeltaE extends HTMLElement {
 		}
 		this.dots.a.style.background = fmtHex(a);
 		this.dots.b.style.background = fmtHex(b);
+		this.pickers.a.value = fmtHex(a);
+		this.pickers.b.value = fmtHex(b);
 		let de;
 		try {
 			de = a.deltaE(b, this.mode);

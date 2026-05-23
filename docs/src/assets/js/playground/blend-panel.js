@@ -15,6 +15,8 @@ const MODES = [
 class BlendPanel extends HTMLElement {
 	connectedCallback() {
 		this.input = this.querySelector("[data-blend-input]");
+		this.picker = this.querySelector("[data-blend-picker]");
+		this.pickerChip = this.querySelector("[data-blend-picker-chip]");
 		this.select = this.querySelector("[data-blend-mode]");
 		this.chipA = this.querySelector("[data-blend-a]");
 		this.chipB = this.querySelector("[data-blend-b]");
@@ -26,6 +28,13 @@ class BlendPanel extends HTMLElement {
 		this.input.addEventListener("input", () => {
 			try {
 				this.other = swatch(this.input.value.trim());
+				this.render();
+			} catch (e) {}
+		});
+		this.picker.addEventListener("input", () => {
+			try {
+				this.other = swatch(this.picker.value);
+				this.input.value = fmtHex(this.other);
 				this.render();
 			} catch (e) {}
 		});
@@ -44,15 +53,20 @@ class BlendPanel extends HTMLElement {
 		if (!c || !this.other) return;
 		const mode = this.select.value;
 		this.chipA.style.background = fmtHex(c);
-		this.chipB.style.background = fmtHex(this.other);
+		const otherHex = fmtHex(this.other);
+		this.chipB.style.background = otherHex;
+		this.picker.value = otherHex;
+		this.pickerChip.style.background = otherHex;
 		try {
 			const result = c.blend(this.other, mode);
 			const hex = fmtHex(result);
 			this.chipResult.style.background = hex;
 			this.hexBtn.textContent = hex;
+			this.hexBtn.setAttribute("aria-label", `Copy blended color ${hex}`);
 		} catch (e) {
 			this.chipResult.style.background = "transparent";
 			this.hexBtn.textContent = "—";
+			this.hexBtn.setAttribute("aria-label", "Blended color unavailable");
 		}
 	}
 }

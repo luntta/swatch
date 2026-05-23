@@ -67,6 +67,7 @@ class SimulationGrid extends HTMLElement {
 			const h = fmtHex(sim);
 			chip.style.background = h;
 			hex.textContent = h;
+			hex.setAttribute("aria-label", `Copy ${type} simulation color ${h}`);
 		}
 	}
 }

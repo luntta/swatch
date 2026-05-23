@@ -28,9 +28,9 @@ class Daltonize extends HTMLElement {
 			wrap.className = "dalt-table__row";
 			wrap.innerHTML = `
 				<div class="dalt-table__cell">${r.label}</div>
-				<div class="dalt-table__cell"><div class="dalt-swatch" data-orig></div></div>
-				<div class="dalt-table__cell"><div class="dalt-swatch" data-dalt></div></div>
-				<div class="dalt-table__cell"><div class="dalt-swatch" data-dsim></div></div>
+				<div class="dalt-table__cell"><button type="button" class="dalt-swatch" data-orig></button></div>
+				<div class="dalt-table__cell"><button type="button" class="dalt-swatch" data-dalt></button></div>
+				<div class="dalt-table__cell"><button type="button" class="dalt-swatch" data-dsim></button></div>
 			`;
 			this.table.appendChild(wrap);
 			const orig = wrap.querySelector("[data-orig]");
@@ -58,14 +58,23 @@ class Daltonize extends HTMLElement {
 				const simOrig = c.simulate(type);
 				const corrected = c.daltonize(type);
 				const simCorrected = corrected.simulate(type);
-				orig.style.background = fmtHex(simOrig);
-				dalt.style.background = fmtHex(corrected);
-				dsim.style.background = fmtHex(simCorrected);
+				const origHex = fmtHex(simOrig);
+				const daltHex = fmtHex(corrected);
+				const dsimHex = fmtHex(simCorrected);
+				orig.style.background = origHex;
+				dalt.style.background = daltHex;
+				dsim.style.background = dsimHex;
+				orig.setAttribute("aria-label", `Copy ${type} simulated original ${origHex}`);
+				dalt.setAttribute("aria-label", `Copy ${type} daltonized ${daltHex}`);
+				dsim.setAttribute("aria-label", `Copy ${type} simulated daltonized ${dsimHex}`);
 			} catch (e) {
 				const hex = fmtHex(c);
 				orig.style.background = hex;
 				dalt.style.background = hex;
 				dsim.style.background = hex;
+				orig.setAttribute("aria-label", `Copy ${type} simulated original ${hex}`);
+				dalt.setAttribute("aria-label", `Copy ${type} daltonized ${hex}`);
+				dsim.setAttribute("aria-label", `Copy ${type} simulated daltonized ${hex}`);
 			}
 		}
 	}

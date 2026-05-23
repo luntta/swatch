@@ -2,7 +2,7 @@
 // Swatch playground · entry
 // ============================================================
 
-import { init, getRoot, setRoot } from "./state.js";
+import { init, getRoot, setRoot, subscribe } from "./state.js";
 import { copy, fmtHex, randomHex } from "./format.js";
 import { attachSpecimen } from "./specimen.js";
 
@@ -25,8 +25,26 @@ function ready(fn) {
 	else document.addEventListener("DOMContentLoaded", fn);
 }
 
+function attachHeaderColorPicker(root) {
+	const picker = root.querySelector("[data-header-color-picker]");
+	const chip = root.querySelector("[data-header-color-chip]");
+	if (!picker || !chip) return;
+
+	picker.addEventListener("input", () => {
+		setRoot(picker.value);
+	});
+
+	subscribe((c) => {
+		if (!c) return;
+		const hex = fmtHex(c);
+		picker.value = hex;
+		chip.style.setProperty("--header-color", hex);
+	});
+}
+
 ready(() => {
 	init("#3b82f6");
+	attachHeaderColorPicker(document);
 	attachSpecimen(document);
 
 	// Global keyboard shortcuts

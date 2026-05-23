@@ -147,12 +147,15 @@
 }
 .specimen__meta dd {
 	margin: 0;
+}
+.specimen__meta button {
 	color: var(--ink-2);
 	cursor: pointer;
 	transition: color var(--dur) var(--ease);
 	font-variant-numeric: tabular-nums;
+	text-align: left;
 }
-.specimen__meta dd:hover {
+.specimen__meta button:hover {
 	color: var(--ink);
 }
 
@@ -211,6 +214,55 @@
 	.color-input {
 		grid-template-columns: 1fr;
 	}
+}
+.color-field,
+.color-list-field {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 32px;
+	gap: var(--s-2);
+	align-items: center;
+}
+.color-list-field--textarea {
+	align-items: start;
+}
+.color-field > input,
+.color-list-field > input,
+.color-list-field > textarea {
+	width: 100%;
+	min-width: 0;
+}
+.color-field__picker,
+.color-picker-chip {
+	position: relative;
+	display: inline-block;
+	background: var(--picker-color, #09090b);
+	overflow: hidden;
+	cursor: pointer;
+	box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ink) 10%, transparent);
+}
+.color-field__picker {
+	width: 32px;
+	height: 32px;
+	border-radius: var(--r-1);
+}
+.color-field__picker:focus-within,
+.color-picker-chip:focus-within {
+	outline: 2px solid var(--ink);
+	outline-offset: 2px;
+}
+.color-list-field--textarea .color-field__picker {
+	margin-top: 6px;
+}
+.color-field__picker input[type="color"],
+.color-picker-chip input[type="color"] {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	cursor: pointer;
 }
 .color-bar {
 	display: grid;
@@ -451,6 +503,8 @@
 .dalt-table__row > div:last-child { border-right: 0; }
 .dalt-table > div:nth-last-child(-n+4) { border-bottom: 0; }
 .dalt-swatch {
+	display: block;
+	width: 100%;
 	height: 44px;
 	border-radius: var(--r-1);
 	background: var(--dalt-color, #09090b);
@@ -508,7 +562,7 @@
 	display: grid;
 	gap: var(--s-3);
 }
-.contrast__pickers label {
+.contrast__picker-row {
 	font-size: var(--fs-xs);
 	text-transform: uppercase;
 	letter-spacing: var(--track-caps);
@@ -518,6 +572,9 @@
 	gap: var(--s-3);
 	align-items: center;
 	font-family: var(--font-mono);
+}
+.contrast__picker-row > label {
+	cursor: pointer;
 }
 .contrast__pickers input[type="text"] {
 	font-family: var(--font-mono);

@@ -33,9 +33,11 @@ class TemperaturePanel extends HTMLElement {
 			const hex = fmtHex(c);
 			this.chip.style.background = hex;
 			this.hexBtn.textContent = hex;
+			this.hexBtn.setAttribute("aria-label", `Copy temperature color ${hex}`);
 		} catch (e) {
 			this.chip.style.background = "transparent";
 			this.hexBtn.textContent = "—";
+			this.hexBtn.setAttribute("aria-label", "Temperature color unavailable");
 		}
 	}
 

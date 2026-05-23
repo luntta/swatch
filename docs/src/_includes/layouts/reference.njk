@@ -2,12 +2,12 @@
 layout: base.njk
 ---
 <div class="reference-shell">
-	<aside class="reference-side">
-		<h2>Reference</h2>
+	<aside class="reference-side" aria-label="Reference navigation">
+		<div class="reference-side__title">Reference</div>
 		<ol>
 			{% for item in collections.reference %}
 				<li>
-					<a href="{{ item.url | absUrl }}"
+					<a href="{{ item.url | relUrl(page.url) }}"
 						{% if page.url == item.url %}aria-current="page"{% endif %}>
 						{{ item.data.title }}
 					</a>
@@ -34,7 +34,7 @@ layout: base.njk
 		<nav class="reference-pager" aria-label="Pagination">
 			<div class="prev">
 				{% if prevItem %}
-					<a href="{{ prevItem.url | absUrl }}">
+					<a href="{{ prevItem.url | relUrl(page.url) }}">
 						← Previous
 						<strong>{{ prevItem.data.title }}</strong>
 					</a>
@@ -42,7 +42,7 @@ layout: base.njk
 			</div>
 			<div class="next">
 				{% if nextItem %}
-					<a href="{{ nextItem.url | absUrl }}">
+					<a href="{{ nextItem.url | relUrl(page.url) }}">
 						Next →
 						<strong>{{ nextItem.data.title }}</strong>
 					</a>
