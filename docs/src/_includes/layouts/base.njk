@@ -34,6 +34,7 @@
 		<a href="#main" class="skip-link">Skip to content</a>
 
 		<header class="site-header">
+			<div class="site-header__bar">
 			<div class="brand-lockup">
 				{% if playground %}
 					<label class="header-color" data-header-color-chip title="Pick playground color">
@@ -65,6 +66,25 @@
 					<span class="theme-toggle__dot"></span>
 				</button>
 			</nav>
+			</div>
+
+			{% if playground %}
+				<nav class="section-jump" aria-label="Playground sections">
+					<a href="#playground">Input</a>
+					<a href="#simulation">Simulation</a>
+					<a href="#daltonize">Daltonize</a>
+					<a href="#contrast">Contrast</a>
+					<a href="#manipulate">Manipulate</a>
+					<a href="#tint-shade">Tint / Shade</a>
+					<a href="#blend">Blend</a>
+					<a href="#harmonies">Harmonies</a>
+					<a href="#scales">Scales</a>
+					<a href="#naming">Naming</a>
+					<a href="#temperature">Temperature</a>
+					<a href="#palette">Palette</a>
+					<a href="#delta-e">Delta E</a>
+				</nav>
+			{% endif %}
 		</header>
 
 		<main id="main" class="site-main">
@@ -88,6 +108,63 @@
 		{% if playground %}
 			<script type="module" src="{{ '/assets/js/playground/index.js' | relUrl(page.url) }}"></script>
 		{% endif %}
+		<script>
+			// Copy buttons on code blocks. Progressive enhancement that runs on
+			// every page — including reference pages, which don't load the
+			// playground bundle.
+			(function () {
+				var toastEl = document.getElementById("toast");
+				var toastTimer;
+				function toast(msg) {
+					if (!toastEl) return;
+					toastEl.textContent = msg;
+					toastEl.classList.add("is-visible");
+					clearTimeout(toastTimer);
+					toastTimer = setTimeout(function () {
+						toastEl.classList.remove("is-visible");
+					}, 1400);
+				}
+				function ready(fn) {
+					if (document.readyState !== "loading") fn();
+					else document.addEventListener("DOMContentLoaded", fn);
+				}
+				ready(function () {
+					if (!navigator.clipboard) return;
+					document.querySelectorAll(".site-main pre").forEach(function (pre) {
+						var wrap = document.createElement("div");
+						wrap.className = "code-block";
+						pre.parentNode.insertBefore(wrap, pre);
+						wrap.appendChild(pre);
+
+						var btn = document.createElement("button");
+						btn.type = "button";
+						btn.className = "code-copy";
+						btn.textContent = "Copy";
+						btn.setAttribute("aria-label", "Copy code to clipboard");
+						wrap.appendChild(btn);
+
+						btn.addEventListener("click", function () {
+							var code = pre.querySelector("code");
+							var text = (code || pre).innerText;
+							navigator.clipboard.writeText(text).then(
+								function () {
+									btn.textContent = "Copied";
+									btn.dataset.copied = "true";
+									toast("Copied to clipboard");
+									setTimeout(function () {
+										btn.textContent = "Copy";
+										delete btn.dataset.copied;
+									}, 1400);
+								},
+								function () {
+									toast("Copy failed");
+								}
+							);
+						});
+					});
+				});
+			})();
+		</script>
 		<script>
 			// Theme toggle
 			var themeToggle = document.querySelector("[data-theme-toggle]");

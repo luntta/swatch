@@ -75,21 +75,13 @@
 	flex-wrap: wrap;
 }
 
-/* Playground section nav ---------------------------------------------- */
+/* Playground section nav — a full-width second row of the site header --- */
 .section-jump {
-	position: sticky;
-	top: calc(56px + var(--s-2));
-	z-index: 40;
 	display: flex;
 	gap: var(--s-2);
 	overflow-x: auto;
-	padding: var(--s-2);
-	margin: 0 calc(var(--s-2) * -1) var(--s-4);
-	background: color-mix(in oklab, var(--bg) 92%, transparent);
-	backdrop-filter: saturate(180%) blur(14px);
-	-webkit-backdrop-filter: saturate(180%) blur(14px);
-	border: 1px solid var(--border-soft);
-	border-radius: var(--r-2);
+	padding: var(--s-3) var(--gutter);
+	border-top: 1px solid var(--border-soft);
 	scrollbar-width: thin;
 }
 .section-jump a {
@@ -200,7 +192,8 @@
 .section {
 	padding: var(--s-8) 0;
 	border-top: 1px solid var(--border);
-	scroll-margin-top: 7rem;
+	/* Clear the two-row sticky header (brand bar + section nav). */
+	scroll-margin-top: 8.5rem;
 }
 .section:last-of-type {
 	padding-bottom: var(--s-9);
@@ -811,7 +804,9 @@
 }
 .ts-row__chips {
 	display: grid;
-	grid-template-columns: repeat(7, 1fr);
+	/* Reflow rather than overflow on narrow screens (matches .scale-panel__strip).
+	   36px floor matches .ts-chip's min-height via its aspect-ratio: 1. */
+	grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
 	gap: 4px;
 }
 .ts-chip {
@@ -1087,7 +1082,11 @@
 }
 .scale-panel__strip {
 	display: grid;
-	grid-template-columns: repeat(9, 1fr);
+	/* auto-fit + minmax so the 9 chips fill the width on wide screens but
+	   reflow onto extra rows once they no longer fit, instead of overflowing.
+	   The 48px floor matches the chip's min-height (its aspect-ratio: 1 turns
+	   that into a min-width), so the track can never be narrower than a chip. */
+	grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
 	gap: 4px;
 }
 .scale-chip {

@@ -26,6 +26,9 @@ jobs:
         working-directory: docs
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the docs "Last updated" dates come from real commits.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
@@ -33,9 +36,8 @@ jobs:
           cache-dependency-path: docs/package-lock.json
       - run: npm ci
       - name: Build site
-        env:
-          ELEVENTY_ENV: production
-        run: npx @11ty/eleventy
+        # `npm run build` runs Eleventy then Pagefind to generate the search index.
+        run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs/_site

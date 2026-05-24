@@ -233,6 +233,21 @@ export class Swatch {
 		return formatCss(this, opts);
 	}
 
+	// ─── Debug representation ──────────────────────────────────────────
+	//
+	// Without these, `console.log(swatch("#f00"))` dumps `_state`, `_cache`,
+	// and the bound internals. Surface the canonical color instead. The
+	// `nodejs.util.inspect.custom` symbol is registered cross-realm, so this
+	// is a no-op in browsers (which simply ignore the unknown symbol key).
+
+	get [Symbol.toStringTag]() {
+		return "Swatch";
+	}
+
+	[Symbol.for("nodejs.util.inspect.custom")]() {
+		return `Swatch <${this.css()}>`;
+	}
+
 	// sRGB view for the lossy display helpers (`hex`, `rgb`). Wide-gamut
 	// sources are perceptually mapped into sRGB (CSS Color 4 chroma
 	// reduction) by default so `.hex()` / `.rgb()` never silently clip

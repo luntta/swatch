@@ -16,6 +16,13 @@ npm install swatch
 import swatch from "swatch";
 ```
 
+The factory statics are also available as named exports, so bundlers can
+tree-shake the ones you don't use:
+
+```js
+import { scale, contrast, simulate } from "swatch";
+```
+
 ## Quick start
 
 ```js

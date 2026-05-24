@@ -1,5 +1,7 @@
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import markdownItAnchor from "markdown-it-anchor";
+import { execFileSync } from "node:child_process";
+import { statSync } from "node:fs";
 
 function relativeUrl(url, fromUrl = "/") {
 	if (!url) return ".";
@@ -79,6 +81,46 @@ export default function (eleventyConfig) {
 
 	eleventyConfig.addFilter("relUrl", function (url, fromUrl = "/") {
 		return relativeUrl(url, fromUrl);
+	});
+
+	// Last-modified date for a source file, from git history with an fs mtime
+	// fallback (e.g. shallow clones or files not yet committed). Returns an ISO
+	// string or null. Accurate git dates require a full clone — see
+	// fetch-depth: 0 in .github/workflows/pages.yml.
+	eleventyConfig.addFilter("gitIsoDate", function (inputPath) {
+		if (!inputPath) return null;
+		try {
+			const iso = execFileSync(
+				"git",
+				["log", "-1", "--format=%cI", "--", inputPath],
+				{ encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }
+			).trim();
+			if (iso) return iso;
+		} catch (_err) {
+			// not a git checkout, or git unavailable — fall through
+		}
+		try {
+			return statSync(inputPath).mtime.toISOString();
+		} catch (_err) {
+			return null;
+		}
+	});
+
+	eleventyConfig.addFilter("humanDate", function (iso) {
+		if (!iso) return "";
+		const d = new Date(iso);
+		if (Number.isNaN(d.getTime())) return "";
+		return d.toLocaleDateString("en-US", {
+			year: "numeric",
+			month: "long",
+			day: "numeric",
+		});
+	});
+
+	// "./src/reference/api.md" → "docs/src/reference/api.md", for building
+	// GitHub edit URLs from a page's inputPath.
+	eleventyConfig.addFilter("repoPath", function (inputPath) {
+		return "docs/" + String(inputPath || "").replace(/^\.\//, "");
 	});
 
 	eleventyConfig.addTransform("relative-html-links", function (content) {

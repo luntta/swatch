@@ -17,7 +17,7 @@
     "src/**/*.js",
     "!src/_v2-monolith.js",
     "!src/_v2-named-colors.js",
-    "types",
+    "types/swatch.d.ts",
     "scripts/pack-check.mjs",
     "README.md",
     "CONTRIBUTING.md",
@@ -31,12 +31,14 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json",
     "docs:dev": "npm --prefix docs run dev",
     "docs:build": "npm --prefix docs run build",
-    "check": "npm test && npm run docs:build",
+    "check": "npm test && npm run typecheck && npm run docs:build",
     "pack:check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
+    "typescript": "^6.0.3",
     "vitest": "^2.1.0"
   },
   "repository": {

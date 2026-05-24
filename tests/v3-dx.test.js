@@ -1,7 +1,16 @@
 import { describe, it, expect } from "vitest";
+import { inspect } from "node:util";
 import swatch from "../src/swatch.js";
 
 describe("v3 DX helpers", () => {
+	it("prints a readable summary in console.log / util.inspect", () => {
+		const c = swatch("oklch(0.7 0.15 240)");
+		expect(inspect(c)).toBe("Swatch <oklch(0.7 0.15 240)>");
+		expect(Object.prototype.toString.call(c)).toBe("[object Swatch]");
+		// No internal fields leak into the inspected output.
+		expect(inspect(c)).not.toMatch(/_state|_cache/);
+	});
+
 	it("serializes common formats with short helpers", () => {
 		const c = swatch("rgb(51 102 204 / 0.5)");
 		expect(c.hex()).toBe("#3366cc");
@@ -9,6 +18,38 @@ describe("v3 DX helpers", () => {
 		expect(c.css({ format: "oklch" })).toMatch(/^oklch\(/);
 		expect(c.rgb()).toEqual({ r: 51, g: 102, b: 204, a: 0.5 });
 		expect(c.rgb({ alpha: false })).toEqual({ r: 51, g: 102, b: 204 });
+	});
+
+	it("exposes factory statics as named exports", async () => {
+		const mod = await import("../src/swatch.js");
+		const expected = [
+			"temperature",
+			"random",
+			"contrast",
+			"isReadable",
+			"ensureContrast",
+			"apcaContrast",
+			"simulate",
+			"daltonize",
+			"checkPalette",
+			"nearestDistinguishable",
+			"mostReadable",
+			"scale",
+			"bezier",
+			"cubehelix",
+			"palettes",
+			"isColor",
+			"spaces",
+			"cvd"
+		];
+		for (const key of expected) {
+			expect(mod[key], `named export "${key}"`).toBe(swatch[key]);
+		}
+		// They behave identically to the factory statics.
+		expect(mod.contrast("#000", "#fff")).toBe(swatch.contrast("#000", "#fff"));
+		expect(mod.scale(["#000", "#fff"]).colors(3, "hex")).toEqual(
+			swatch.scale(["#000", "#fff"]).colors(3, "hex")
+		);
 	});
 
 	it("supports safe parsing helpers", () => {
@@ -91,5 +132,19 @@ describe("v3 DX helpers", () => {
 		expect(() => swatch.scale("virids")).toThrow(
 			/Did you mean "viridis"/
 		);
+	});
+
+	it("scopes channel-name hints to the space's layout", () => {
+		// Long names resolve to the right letter for each layout.
+		expect(() => swatch("#fff").get("rgb.blue")).toThrow(/Did you mean "b"/);
+		expect(() => swatch("#fff").get("hwb.blackness")).toThrow(
+			/Did you mean "b"/
+		);
+		// "blue" is meaningless in hwb, so it must NOT be steered to
+		// blackness's "b" the way a space-blind hint table would.
+		expect(() => swatch("#fff").get("hwb.blue")).toThrow(
+			/has no channel "blue"/
+		);
+		expect(() => swatch("#fff").get("hwb.blue")).not.toThrow(/Did you mean/);
 	});
 });

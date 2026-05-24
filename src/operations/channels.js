@@ -17,22 +17,18 @@ const SPACE_ALIASES = {
 	rgb: "srgb"
 };
 
-const CHANNEL_NAME_HINTS = {
-	red: "r",
-	green: "g",
-	blue: "b",
-	lightness: "l",
-	luminance: "l",
-	chroma: "c",
-	hue: "h",
-	saturation: "s",
-	value: "v",
-	whiteness: "w",
-	blackness: "b",
-	cyan: "c",
-	magenta: "m",
-	yellow: "y",
-	black: "k"
+// Long-form channel names → the single-letter channel they refer to, scoped
+// per channel layout. Scoping matters because the same letter means different
+// things in different spaces: "b" is blue in rgb but blackness in hwb, and in
+// lab/oklab the a/b axes have no common long name at all. A single global map
+// would mis-suggest blackness's "b" for a stray `hwb.blue`.
+const CHANNEL_HINTS_BY_LAYOUT = {
+	"r,g,b": { red: "r", green: "g", blue: "b" },
+	"h,s,l": { hue: "h", saturation: "s", lightness: "l", luminosity: "l" },
+	"h,s,v": { hue: "h", saturation: "s", value: "v", brightness: "v" },
+	"h,w,b": { hue: "h", whiteness: "w", white: "w", blackness: "b", black: "b" },
+	"l,c,h": { lightness: "l", luminance: "l", chroma: "c", hue: "h" },
+	"c,m,y,k": { cyan: "c", magenta: "m", yellow: "y", black: "k", key: "k" }
 };
 
 function foldCmyk({ c, m, y, k }) {
@@ -45,7 +41,8 @@ function resolveSpaceId(token) {
 }
 
 function suggestChannel(channel, channels) {
-	const hinted = CHANNEL_NAME_HINTS[channel];
+	const table = CHANNEL_HINTS_BY_LAYOUT[channels.join(",")];
+	const hinted = table?.[channel];
 	if (hinted && channels.includes(hinted)) return hinted;
 	return closestMatch(channel, channels);
 }

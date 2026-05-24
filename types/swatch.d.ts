@@ -579,3 +579,27 @@ export interface SwatchFactory {
 declare const swatch: SwatchFactory;
 export default swatch;
 export { swatch };
+
+// ─── Named re-exports of the factory statics ──────────────────────────
+//
+//   import { scale, contrast, spaces } from "swatch";
+//
+// `swatch.try` stays on the factory only (`try` is a reserved word).
+export const temperature: SwatchFactory["temperature"];
+export const random: SwatchFactory["random"];
+export const contrast: SwatchFactory["contrast"];
+export const isReadable: SwatchFactory["isReadable"];
+export const ensureContrast: SwatchFactory["ensureContrast"];
+export const apcaContrast: SwatchFactory["apcaContrast"];
+export const simulate: SwatchFactory["simulate"];
+export const daltonize: SwatchFactory["daltonize"];
+export const checkPalette: SwatchFactory["checkPalette"];
+export const nearestDistinguishable: SwatchFactory["nearestDistinguishable"];
+export const mostReadable: SwatchFactory["mostReadable"];
+export const scale: SwatchFactory["scale"];
+export const bezier: SwatchFactory["bezier"];
+export const cubehelix: SwatchFactory["cubehelix"];
+export const palettes: SwatchFactory["palettes"];
+export const isColor: SwatchFactory["isColor"];
+export const spaces: SwatchFactory["spaces"];
+export const cvd: SwatchFactory["cvd"];

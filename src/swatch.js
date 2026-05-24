@@ -24,3 +24,31 @@ import { swatch, Swatch } from "./core/swatch-class.js";
 
 export { swatch, Swatch };
 export default swatch;
+
+// Named re-exports of the factory statics, so bundlers can tree-shake unused
+// helpers and editors can autocomplete them directly:
+//
+//   import { scale, contrast, spaces } from "swatch";
+//
+// `swatch.try` stays on the factory only — `try` is a reserved word and
+// cannot be a named export.
+export const {
+	temperature,
+	random,
+	contrast,
+	isReadable,
+	ensureContrast,
+	apcaContrast,
+	simulate,
+	daltonize,
+	checkPalette,
+	nearestDistinguishable,
+	mostReadable,
+	scale,
+	bezier,
+	cubehelix,
+	palettes,
+	isColor,
+	spaces,
+	cvd
+} = swatch;
