@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1 — PATCH
+
+- Fixed protan/deutan/tritan CVD simulation matrices to use the Machado severity table in linear-light sRGB, making protanopia and deuteranopia previews visibly distinct again.
+- Updated the batch `simulateImageData`/`daltonizeImageData` paths to share the same CVD matrix builder as color-level simulation.
+- Fixed the docs image playground fallback path so non-worker previews pass canonical CVD type keys.
+
 ## 3.0.0 — BREAKING
 
 A complete rewrite. Storage moved to a canonical `{ space, coords, alpha }` state (colorjs.io / culori model) so wide-gamut inputs are preserved losslessly, conversions go through a lazy CIE XYZ D65 hub, and the monolithic `src/swatch.js` has been split into `src/core`, `src/spaces`, `src/parse`, `src/format`, `src/operations`, `src/scale`, `src/palettes`, and `src/data`.
