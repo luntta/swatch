@@ -57,6 +57,10 @@ import * as accessibility from "./operations/accessibility.js";
 import { apcaContrast } from "./operations/apca.js";
 import * as cvd from "./operations/cvd.js";
 import {
+	simulateImageData,
+	daltonizeImageData
+} from "./operations/image.js";
+import {
 	checkPalette,
 	nearestDistinguishable,
 	mostReadable
@@ -96,6 +100,12 @@ swatch.ensureContrast = accessibility.ensureContrast;
 swatch.apcaContrast = apcaContrast;
 swatch.simulate = (c, type, opts) => cvd.simulate(c, type, opts);
 swatch.daltonize = (c, type, opts) => cvd.daltonize(c, type, opts);
+swatch.simulateImageData = simulateImageData;
+swatch.daltonizeImageData = daltonizeImageData;
+swatch.image = Object.freeze({
+	simulate: simulateImageData,
+	daltonize: daltonizeImageData
+});
 swatch.checkPalette = checkPalette;
 swatch.nearestDistinguishable = nearestDistinguishable;
 swatch.mostReadable = mostReadable;

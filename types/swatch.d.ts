@@ -295,6 +295,41 @@ export interface DaltonizeOptions {
 	severity?: number;
 }
 
+export interface ImageDataLike {
+	data: Uint8ClampedArray;
+	width: number;
+	height: number;
+}
+
+export interface ImageDataTransformOptions {
+	severity?: number;
+	/** Mutate and return the provided ImageData-like object. Default true. */
+	inPlace?: boolean;
+}
+
+export interface ImageApi {
+	simulate<T extends ImageDataLike>(
+		imageData: T,
+		type: CVDType,
+		opts?: ImageDataTransformOptions & { inPlace?: true }
+	): T;
+	simulate(
+		imageData: ImageDataLike,
+		type: CVDType,
+		opts: ImageDataTransformOptions & { inPlace: false }
+	): ImageDataLike;
+	daltonize<T extends ImageDataLike>(
+		imageData: T,
+		type: Exclude<CVDType, "achroma" | "achromatopsia">,
+		opts?: ImageDataTransformOptions & { inPlace?: true }
+	): T;
+	daltonize(
+		imageData: ImageDataLike,
+		type: Exclude<CVDType, "achroma" | "achromatopsia">,
+		opts: ImageDataTransformOptions & { inPlace: false }
+	): ImageDataLike;
+}
+
 export interface ManipulationOptions {
 	/** Skip sRGB gamut mapping after the op. Default true (mapping on). */
 	gamut?: boolean;
@@ -552,6 +587,27 @@ export interface SwatchFactory {
 		type: Exclude<CVDType, "achroma" | "achromatopsia">,
 		opts?: DaltonizeOptions
 	): Swatch;
+	simulateImageData<T extends ImageDataLike>(
+		imageData: T,
+		type: CVDType,
+		opts?: ImageDataTransformOptions & { inPlace?: true }
+	): T;
+	simulateImageData(
+		imageData: ImageDataLike,
+		type: CVDType,
+		opts: ImageDataTransformOptions & { inPlace: false }
+	): ImageDataLike;
+	daltonizeImageData<T extends ImageDataLike>(
+		imageData: T,
+		type: Exclude<CVDType, "achroma" | "achromatopsia">,
+		opts?: ImageDataTransformOptions & { inPlace?: true }
+	): T;
+	daltonizeImageData(
+		imageData: ImageDataLike,
+		type: Exclude<CVDType, "achroma" | "achromatopsia">,
+		opts: ImageDataTransformOptions & { inPlace: false }
+	): ImageDataLike;
+	readonly image: ImageApi;
 
 	// Palette helpers.
 	checkPalette(
@@ -593,6 +649,9 @@ export const ensureContrast: SwatchFactory["ensureContrast"];
 export const apcaContrast: SwatchFactory["apcaContrast"];
 export const simulate: SwatchFactory["simulate"];
 export const daltonize: SwatchFactory["daltonize"];
+export const simulateImageData: SwatchFactory["simulateImageData"];
+export const daltonizeImageData: SwatchFactory["daltonizeImageData"];
+export const image: SwatchFactory["image"];
 export const checkPalette: SwatchFactory["checkPalette"];
 export const nearestDistinguishable: SwatchFactory["nearestDistinguishable"];
 export const mostReadable: SwatchFactory["mostReadable"];

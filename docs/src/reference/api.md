@@ -33,6 +33,10 @@ offs in more detail.
 | `swatch.apcaContrast(text, background)` | `number` | Signed APCA Lc value. |
 | `swatch.simulate(color, type, options?)` | `Swatch` | CVD simulation. |
 | `swatch.daltonize(color, type, options?)` | `Swatch` | Fidaner-style correction for protan/deutan/tritan. |
+| `swatch.simulateImageData(imageData, type, options?)` | `ImageDataLike` | Batch CVD simulation for canvas pixels; mutates in place by default. |
+| `swatch.daltonizeImageData(imageData, type, options?)` | `ImageDataLike` | Batch raster daltonization; mutates in place by default. |
+| `swatch.image.simulate(...)` | `ImageDataLike` | Namespace alias for `simulateImageData`. |
+| `swatch.image.daltonize(...)` | `ImageDataLike` | Namespace alias for `daltonizeImageData`. |
 | `swatch.checkPalette(colors, options?)` | `PaletteReport` | Pairwise palette distinguishability report. |
 | `swatch.nearestDistinguishable(target, against, options?)` | `Swatch` | Nudge one color until it clears a ΔE threshold. |
 | `swatch.mostReadable(background, candidates, options?)` | `Swatch` | Pick the best readable foreground candidate. |

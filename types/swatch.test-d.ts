@@ -7,6 +7,8 @@ import swatch, {
 	scale,
 	contrast,
 	simulate,
+	simulateImageData,
+	image,
 	spaces,
 	cvd,
 	type SpaceId,
@@ -40,6 +42,9 @@ const ctr: number = contrast("#000", "#fff");
 const sim: Swatch = simulate(c, "deutan");
 const oklchId: SpaceId = spaces.oklch;
 const deutan: CVDType = cvd.deutan;
+const img = { width: 1, height: 1, data: new Uint8ClampedArray(4) };
+const imgOut = simulateImageData(img, "deutan");
+const imgClone = image.simulate(img, "protan", { inPlace: false });
 
 // ── Negative cases: each must be a type error ──
 
@@ -54,6 +59,9 @@ contrast("#000");
 
 // @ts-expect-error HexOptions has no `mode` property
 c.hex({ mode: "x" });
+
+// @ts-expect-error ImageData transforms need an ImageData-like object
+simulateImageData("#ff0000", "deutan");
 
 // Touch every positive binding so the file has no accidental dead code paths
 // regardless of compiler unused-locals settings.
@@ -73,6 +81,8 @@ export type _Used = [
 	typeof swatches,
 	typeof ctr,
 	typeof sim,
+	typeof imgOut,
+	typeof imgClone,
 	typeof oklchId,
 	typeof deutan,
 	typeof c

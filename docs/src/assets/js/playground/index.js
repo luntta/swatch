@@ -19,6 +19,7 @@ import "./naming-panel.js";
 import "./temperature-panel.js";
 import "./palette-check.js";
 import "./delta-e.js";
+import "./image-panel.js";
 
 function ready(fn) {
 	if (document.readyState !== "loading") fn();

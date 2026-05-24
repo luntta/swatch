@@ -26,3 +26,20 @@ corrected.simulate("deutan");   // should be more distinct than red.simulate("de
 
 The §03 panel of the [playground](/) shows all three steps side-by-side:
 **Original (sim)** → **Daltonized** → **Daltonized (sim)**.
+
+## Images and canvas
+
+Use `swatch.daltonizeImageData(imageData, type, options?)` for raster
+correction. It has the same performance-oriented behavior as
+`simulateImageData`: in-place by default, alpha preserved, and `{ inPlace:
+false }` when you need to keep the original buffer.
+
+```js
+const corrected = swatch.daltonizeImageData(imageData, "deutan", {
+  severity: 1,
+  inPlace: false,
+});
+```
+
+`achroma` / achromatopsia cannot be daltonized because there are no remaining
+chromatic channels to shift information into.

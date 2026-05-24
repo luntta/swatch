@@ -296,6 +296,23 @@ Accepted aliases: `protanopia`/`protanomaly` → `protan`, `deuteranopia`/`deute
 
 Severity `0.0` is identity, `1.0` is the full dichromat, in between is a linear interpolation of the RGB transform matrix.
 
+### ImageData simulation
+
+For photos and other raster images, use the batch ImageData API instead of
+calling `swatch(pixel).simulate(...)` in a loop. It uses byte/linear-light LUTs
+and computes the CVD matrix once per image.
+
+```js
+const ctx = canvas.getContext("2d");
+const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+swatch.simulateImageData(imageData, "deutan", { severity: 1 });
+ctx.putImageData(imageData, 0, 0);
+```
+
+The transform mutates in place by default for performance. Pass
+`{ inPlace: false }` to clone first. Alpha is preserved.
+
 ## Daltonization
 
 Fidaner error-redistribution: the information lost to a dichromat is shifted into channels they can still see.
@@ -303,6 +320,12 @@ Fidaner error-redistribution: the information lost to a dichromat is shifted int
 ```js
 swatch("#ff0000").daltonize("deutan");
 swatch("#ff0000").daltonize("protan", { severity: 0.8 });
+```
+
+The same batch API is available for raster corrections:
+
+```js
+swatch.daltonizeImageData(imageData, "protan");
 ```
 
 ## Palette distinguishability

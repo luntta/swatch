@@ -603,4 +603,44 @@ playground: true
 		</t-delta-e>
 	</section>
 
+	{# ============================================================
+	   Image CVD
+	   ============================================================ #}
+	<section id="image-cvd" class="section">
+		<div class="section__head">
+			<span class="section__index">14 — Image CVD</span>
+			<h2 class="section__title">Simulate a whole image.</h2>
+			<p class="section__lede">
+				Choose a local JPEG, PNG, WebP, or other browser-decodable image.
+				The file stays in your browser: Swatch draws it to canvas, runs the
+				batch <code>simulateImageData</code> path in a Web Worker, and
+				renders original/protan/deutan/tritan/achroma previews side by side.
+			</p>
+			<p class="section__lede">
+				For responsiveness, very large images are downscaled for preview and
+				pixel buffers are transferred to/from the worker instead of copied.
+				Alpha is preserved.
+			</p>
+		</div>
+		<t-image-cvd>
+			<div class="image-cvd">
+				<div class="image-cvd__toolbar">
+					<label class="image-cvd__file">
+						<span class="label-mono">Image</span>
+						<input type="file" accept="image/*" data-image-file />
+					</label>
+					<div class="image-cvd__severity">
+						<label for="image-sev">Severity</label>
+						<input id="image-sev" type="range" min="0" max="1" step="0.01" value="1" data-image-severity />
+						<span data-image-severity-value>1.00</span>
+					</div>
+					<div class="image-cvd__status" role="status" aria-live="polite" data-image-status>
+						—
+					</div>
+				</div>
+				<div class="image-cvd__grid" data-image-grid></div>
+			</div>
+		</t-image-cvd>
+	</section>
+
 </div>
