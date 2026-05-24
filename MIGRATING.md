@@ -178,7 +178,7 @@ See [README.md](./README.md) for examples of each.
 
 The CVD/APCA/WCAG story — the heart of swatch — is unchanged:
 
-- `simulate(type, { severity })` — Brettel/Viénot dichromat simulation
+- `simulate(type, { severity })` — CVD simulation with a severity continuum
 - `daltonize(type, { severity })` — Fidaner error redistribution
 - `swatch.checkPalette(colors, { cvd, minDeltaE, mode })`
 - `swatch.nearestDistinguishable(target, against, { cvd, minDeltaE, step })`

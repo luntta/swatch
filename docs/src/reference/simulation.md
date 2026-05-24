@@ -4,8 +4,8 @@ order: 3
 eyebrow: "Reference · §03"
 ---
 
-Physically correct sRGB → linear → LMS projection onto the dichromat
-confusion plane (Brettel 1997 / Viénot 1999).
+Physiologically based Machado/Oliveira/Fernandes CVD simulation in
+linear-light sRGB.
 
 ```js
 const red = swatch("#ff0000");
@@ -28,9 +28,8 @@ red.simulate("achroma");                      // Rec. 709 grayscale
 ## The severity continuum
 
 `severity` `0.0` returns the identity (the original color). `1.0` returns the
-full dichromat. Values in between are a linear interpolation of the RGB
-transform matrix, matching the Machado 2009 model's behavior along the
-continuum.
+full dichromat. Values in between interpolate across the published Machado
+severity table, covering milder anomalous-trichromat cases.
 
 ```js
 red.simulate("protan", { severity: 0 });   // identity

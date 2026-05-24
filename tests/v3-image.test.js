@@ -29,6 +29,22 @@ describe("v3 ImageData CVD transforms", () => {
 		expect(img.data).toEqual(new Uint8ClampedArray([255, 0, 0, 123]));
 	});
 
+	it("keeps protan and deutan image simulations distinct", () => {
+		const img = imageData(3, 1, [
+			255, 0, 0, 255,
+			0, 255, 0, 255,
+			0, 0, 255, 255
+		]);
+		const protan = simulateImageData(img, "protan", { inPlace: false });
+		const deutan = simulateImageData(img, "deutan", { inPlace: false });
+
+		expect(protan.data).not.toEqual(deutan.data);
+		expectCloseBytes(protan.data.subarray(0, 3), [109, 95, 0]);
+		expectCloseBytes(deutan.data.subarray(0, 3), [163, 144, 0]);
+		expectCloseBytes(protan.data.subarray(4, 7), [255, 229, 0]);
+		expectCloseBytes(deutan.data.subarray(4, 7), [239, 214, 58]);
+	});
+
 	it("mutates in place by default and preserves alpha", () => {
 		const img = imageData(2, 1, [255, 0, 0, 1, 0, 255, 0, 254]);
 		const out = swatch.simulateImageData(img, "achroma");

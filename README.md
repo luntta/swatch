@@ -1,6 +1,6 @@
 # Swatch
 
-A color library with **first-class colorblind support** — physically correct Brettel/Viénot simulation, severity continuum, Fidaner daltonization, and palette distinguishability checks — plus the things you expect from a modern color library: CSS Color 4 parsing, wide-gamut spaces, OKLab/OKLCh manipulation, color scales, built-in scientific palettes, blend modes, naming, temperature, WCAG 2.1, and APCA.
+A color library with **first-class colorblind support** — Machado CVD simulation, severity continuum, Fidaner daltonization, and palette distinguishability checks — plus the things you expect from a modern color library: CSS Color 4 parsing, wide-gamut spaces, OKLab/OKLCh manipulation, color scales, built-in scientific palettes, blend modes, naming, temperature, WCAG 2.1, and APCA.
 
 **Docs & interactive playground:** <https://luntta.github.io/swatch/>
 
@@ -281,7 +281,7 @@ The `.srgb` / `.linearSrgb` / `.hsl` getters return raw conversions, so wide-gam
 
 ## Colorblind simulation
 
-Physically correct sRGB → linear → LMS projection onto the dichromat confusion plane (Brettel 1997 / Viénot 1999).
+Physiologically based Machado/Oliveira/Fernandes CVD simulation in linear-light sRGB.
 
 ```js
 const red = swatch("#ff0000");
@@ -294,7 +294,7 @@ red.simulate("achroma");                      // Rec. 709 grayscale
 
 Accepted aliases: `protanopia`/`protanomaly` → `protan`, `deuteranopia`/`deuteranomaly` → `deutan`, `tritanopia`/`tritanomaly` → `tritan`, `achromatopsia` → `achroma`.
 
-Severity `0.0` is identity, `1.0` is the full dichromat, in between is a linear interpolation of the RGB transform matrix.
+Severity `0.0` is identity, `1.0` is the full dichromat, and in-between values interpolate across the published Machado severity table.
 
 ### ImageData simulation
 

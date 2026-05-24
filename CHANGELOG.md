@@ -41,7 +41,7 @@ See [`MIGRATING.md`](./MIGRATING.md) for the v2 → v3 cookbook.
 
 The CVD / APCA / WCAG story is preserved end-to-end:
 
-- `simulate(type, { severity })` — Brettel/Viénot dichromat simulation with a severity continuum
+- `simulate(type, { severity })` — CVD simulation with a severity continuum
 - `daltonize(type, { severity })` — Fidaner error redistribution
 - `swatch.checkPalette(colors, { cvd, minDeltaE, mode })`
 - `swatch.nearestDistinguishable(target, against, { cvd, minDeltaE, step })`

@@ -1,18 +1,15 @@
 // CVD (Color Vision Deficiency) simulation matrices.
 //
-// We build dichromat projection matrices in linear sRGB space by
-// lifting the LMS plane projection through standard linear-RGB ↔ LMS
-// transforms:
+// Protan/deutan/tritan simulation uses the Machado, Oliveira & Fernandes
+// physiologically-based matrices in linear-light sRGB. The table contains
+// severity samples from 0.0 (identity) through 1.0 (full dichromacy); callers
+// interpolate between adjacent samples for the severity continuum.
 //
-//   M_RGB = M_LMS→RGB · M_dichromat_LMS · M_RGB→LMS
-//
-// The LMS plane for each dichromat type is constructed via the
-// Brettel/Viénot anchor-line method: the plane passes through white
-// and a confusion-line anchor (blue for protan/deutan, red for
-// tritan). The missing cone's response is reconstructed as
-// a·X + b·Y in LMS space, solved via Cramer's rule.
+// This replaces the old single-plane LMS projection, which used the sRGB blue
+// primary as the shared protan/deutan anchor. That shortcut forced red and
+// green output rows to collapse together, so image previews for protanopia and
+// deuteranopia were much closer than expected.
 
-import { multiplyMatrices, invertMatrix } from "../util/matrix.js";
 import { appendSuggestion } from "../util/suggest.js";
 
 const CVD_TYPES = [
@@ -30,107 +27,201 @@ const CVD_TYPES = [
 	"achromatomaly"
 ];
 
-// sRGB→XYZ (D65), ported from src/swatch.js:1737-1743.
-const M_RGB_TO_XYZ = [
-	[0.4124564, 0.3575761, 0.1804375],
-	[0.2126729, 0.7151522, 0.072175],
-	[0.0193339, 0.119192, 0.9503041]
+export const IDENTITY3 = [
+	[1, 0, 0],
+	[0, 1, 0],
+	[0, 0, 1]
 ];
 
-// Hunt-Pointer-Estevez XYZ→LMS (normalized to equal-energy).
-const M_XYZ_TO_LMS = [
-	[0.4002, 0.7076, -0.0808],
-	[-0.2263, 1.1653, 0.0457],
-	[0, 0, 0.9182]
+// Rec. 709 luminance row, used for the achromatopsia projection.
+export const ACHROMA_MATRIX = [
+	[0.2126, 0.7152, 0.0722],
+	[0.2126, 0.7152, 0.0722],
+	[0.2126, 0.7152, 0.0722]
 ];
 
-export const M_LINEAR_RGB_TO_LMS = multiplyMatrices(
-	M_XYZ_TO_LMS,
-	M_RGB_TO_XYZ
-);
-export const M_LMS_TO_LINEAR_RGB = invertMatrix(M_LINEAR_RGB_TO_LMS);
-
-function mat3mul3(M, v) {
-	return [
-		M[0][0] * v[0] + M[0][1] * v[1] + M[0][2] * v[2],
-		M[1][0] * v[0] + M[1][1] * v[1] + M[1][2] * v[2],
-		M[2][0] * v[0] + M[2][1] * v[1] + M[2][2] * v[2]
-	];
-}
-
-function linearRgbToLms(rgb) {
-	return mat3mul3(M_LINEAR_RGB_TO_LMS, rgb);
-}
-
-// LMS primaries used as dichromat anchors.
-const blueLms = linearRgbToLms([0, 0, 1]);
-const redLms = linearRgbToLms([1, 0, 0]);
-const whiteLms = linearRgbToLms([1, 1, 1]);
-
-// Protan: L is missing → L = a·M + b·S, anchor = blue.
-function dichromatProtanopia() {
-	const wL = whiteLms[0],
-		wM = whiteLms[1],
-		wS = whiteLms[2];
-	const bL = blueLms[0],
-		bM = blueLms[1],
-		bS = blueLms[2];
-	const det = wM * bS - bM * wS;
-	const a = (wL * bS - bL * wS) / det;
-	const b = (wM * bL - bM * wL) / det;
-	return [
-		[0, a, b],
-		[0, 1, 0],
-		[0, 0, 1]
-	];
-}
-
-// Deutan: M is missing → M = a·L + b·S, anchor = blue.
-function dichromatDeuteranopia() {
-	const wL = whiteLms[0],
-		wM = whiteLms[1],
-		wS = whiteLms[2];
-	const bL = blueLms[0],
-		bM = blueLms[1],
-		bS = blueLms[2];
-	const det = wL * bS - bL * wS;
-	const a = (wM * bS - bM * wS) / det;
-	const b = (wL * bM - bL * wM) / det;
-	return [
-		[1, 0, 0],
-		[a, 0, b],
-		[0, 0, 1]
-	];
-}
-
-// Tritan: S is missing → S = a·L + b·M, anchor = red.
-function dichromatTritanopia() {
-	const wL = whiteLms[0],
-		wM = whiteLms[1];
-	const rL = redLms[0],
-		rM = redLms[1],
-		rS = redLms[2];
-	const det = wL * rM - rL * wM;
-	const a = (whiteLms[2] * rM - rS * wM) / det;
-	const b = (wL * rS - rL * whiteLms[2]) / det;
-	return [
-		[1, 0, 0],
-		[0, 1, 0],
-		[a, b, 0]
-	];
-}
-
-function buildRgbMatrix(dichromatLms) {
-	return multiplyMatrices(
-		M_LMS_TO_LINEAR_RGB,
-		multiplyMatrices(dichromatLms, M_LINEAR_RGB_TO_LMS)
-	);
-}
+// Machado (2010) Φ_CVD matrices, sampled at severity 0.0, 0.1, …, 1.0.
+// Matrix rows are linear-sRGB output channels; columns are linear-sRGB input
+// channels. The 1.0 samples correspond to protanopia, deuteranopia, and
+// tritanopia respectively.
+export const CVD_MACHADO_MATRICES = {
+	protan: [
+		[
+			[1.0, 0.0, -0.0],
+			[0.0, 1.0, 0.0],
+			[-0.0, -0.0, 1.0]
+		],
+		[
+			[0.856167, 0.182038, -0.038205],
+			[0.029342, 0.955115, 0.015544],
+			[-0.00288, -0.001563, 1.004443]
+		],
+		[
+			[0.734766, 0.334872, -0.069637],
+			[0.05184, 0.919198, 0.028963],
+			[-0.004928, -0.004209, 1.009137]
+		],
+		[
+			[0.630323, 0.465641, -0.095964],
+			[0.069181, 0.890046, 0.040773],
+			[-0.006308, -0.007724, 1.014032]
+		],
+		[
+			[0.539009, 0.579343, -0.118352],
+			[0.082546, 0.866121, 0.051332],
+			[-0.007136, -0.011959, 1.019095]
+		],
+		[
+			[0.458064, 0.679578, -0.137642],
+			[0.092785, 0.846313, 0.060902],
+			[-0.007494, -0.016807, 1.024301]
+		],
+		[
+			[0.38545, 0.769005, -0.154455],
+			[0.100526, 0.829802, 0.069673],
+			[-0.007442, -0.02219, 1.029632]
+		],
+		[
+			[0.319627, 0.849633, -0.169261],
+			[0.106241, 0.815969, 0.07779],
+			[-0.007025, -0.028051, 1.035076]
+		],
+		[
+			[0.259411, 0.923008, -0.18242],
+			[0.110296, 0.80434, 0.085364],
+			[-0.006276, -0.034346, 1.040622]
+		],
+		[
+			[0.203876, 0.990338, -0.194214],
+			[0.112975, 0.794542, 0.092483],
+			[-0.005222, -0.041043, 1.046265]
+		],
+		[
+			[0.152286, 1.052583, -0.204868],
+			[0.114503, 0.786281, 0.099216],
+			[-0.003882, -0.048116, 1.051998]
+		]
+	],
+	deutan: [
+		[
+			[1.0, 0.0, -0.0],
+			[0.0, 1.0, 0.0],
+			[-0.0, -0.0, 1.0]
+		],
+		[
+			[0.866435, 0.177704, -0.044139],
+			[0.049567, 0.939063, 0.01137],
+			[-0.003453, 0.007233, 0.99622]
+		],
+		[
+			[0.760729, 0.319078, -0.079807],
+			[0.090568, 0.889315, 0.020117],
+			[-0.006027, 0.013325, 0.992702]
+		],
+		[
+			[0.675425, 0.43385, -0.109275],
+			[0.125303, 0.847755, 0.026942],
+			[-0.00795, 0.018572, 0.989378]
+		],
+		[
+			[0.605511, 0.52856, -0.134071],
+			[0.155318, 0.812366, 0.032316],
+			[-0.009376, 0.023176, 0.9862]
+		],
+		[
+			[0.547494, 0.607765, -0.155259],
+			[0.181692, 0.781742, 0.036566],
+			[-0.01041, 0.027275, 0.983136]
+		],
+		[
+			[0.498864, 0.674741, -0.173604],
+			[0.205199, 0.754872, 0.039929],
+			[-0.011131, 0.030969, 0.980162]
+		],
+		[
+			[0.457771, 0.731899, -0.18967],
+			[0.226409, 0.731012, 0.042579],
+			[-0.011595, 0.034333, 0.977261]
+		],
+		[
+			[0.422823, 0.781057, -0.203881],
+			[0.245752, 0.709602, 0.044646],
+			[-0.011843, 0.037423, 0.974421]
+		],
+		[
+			[0.392952, 0.82361, -0.216562],
+			[0.263559, 0.69021, 0.046232],
+			[-0.01191, 0.040281, 0.97163]
+		],
+		[
+			[0.367322, 0.860646, -0.227968],
+			[0.280085, 0.672501, 0.047413],
+			[-0.01182, 0.04294, 0.968881]
+		]
+	],
+	tritan: [
+		[
+			[1.0, 0.0, -0.0],
+			[0.0, 1.0, 0.0],
+			[-0.0, -0.0, 1.0]
+		],
+		[
+			[0.92667, 0.092514, -0.019184],
+			[0.021191, 0.964503, 0.014306],
+			[0.008437, 0.054813, 0.93675]
+		],
+		[
+			[0.89572, 0.13333, -0.02905],
+			[0.029997, 0.9454, 0.024603],
+			[0.013027, 0.104707, 0.882266]
+		],
+		[
+			[0.905871, 0.127791, -0.033662],
+			[0.026856, 0.941251, 0.031893],
+			[0.01341, 0.148296, 0.838294]
+		],
+		[
+			[0.948035, 0.08949, -0.037526],
+			[0.014364, 0.946792, 0.038844],
+			[0.010853, 0.193991, 0.795156]
+		],
+		[
+			[1.017277, 0.027029, -0.044306],
+			[-0.006113, 0.958479, 0.047634],
+			[0.006379, 0.248708, 0.744913]
+		],
+		[
+			[1.104996, -0.046633, -0.058363],
+			[-0.032137, 0.971635, 0.060503],
+			[0.001336, 0.317922, 0.680742]
+		],
+		[
+			[1.193214, -0.109812, -0.083402],
+			[-0.058496, 0.97941, 0.079086],
+			[-0.002346, 0.403492, 0.598854]
+		],
+		[
+			[1.257728, -0.139648, -0.118081],
+			[-0.078003, 0.975409, 0.102594],
+			[-0.003316, 0.501214, 0.502102]
+		],
+		[
+			[1.278864, -0.125333, -0.153531],
+			[-0.084748, 0.957674, 0.127074],
+			[-0.000989, 0.601151, 0.399838]
+		],
+		[
+			[1.255528, -0.076749, -0.178779],
+			[-0.078411, 0.930809, 0.147602],
+			[0.004733, 0.691367, 0.3039]
+		]
+	]
+};
 
 export const CVD_RGB_MATRICES = {
-	protan: buildRgbMatrix(dichromatProtanopia()),
-	deutan: buildRgbMatrix(dichromatDeuteranopia()),
-	tritan: buildRgbMatrix(dichromatTritanopia())
+	protan: CVD_MACHADO_MATRICES.protan[10],
+	deutan: CVD_MACHADO_MATRICES.deutan[10],
+	tritan: CVD_MACHADO_MATRICES.tritan[10]
 };
 
 export function normalizeCVDType(type) {
@@ -151,18 +242,11 @@ export function normalizeCVDType(type) {
 	);
 }
 
-export const IDENTITY3 = [
-	[1, 0, 0],
-	[0, 1, 0],
-	[0, 0, 1]
-];
-
-// Rec. 709 luminance row, used for the achromatopsia projection.
-export const ACHROMA_MATRIX = [
-	[0.2126, 0.7152, 0.0722],
-	[0.2126, 0.7152, 0.0722],
-	[0.2126, 0.7152, 0.0722]
-];
+export function normalizeCVDSeverity(severity) {
+	const n = Number(severity);
+	if (!Number.isFinite(n)) return 1;
+	return n < 0 ? 0 : n > 1 ? 1 : n;
+}
 
 export function interpolateMatrix3(A, B, t) {
 	const out = [
@@ -176,4 +260,25 @@ export function interpolateMatrix3(A, B, t) {
 		}
 	}
 	return out;
+}
+
+function interpolateMachadoTable(table, severity) {
+	if (severity <= 0) return table[0];
+	if (severity >= 1) return table[10];
+
+	const scaled = severity * 10;
+	const lo = Math.min(9, Math.floor(scaled));
+	const hi = lo + 1;
+	const t = scaled - lo;
+	if (t === 0) return table[lo];
+	return interpolateMatrix3(table[lo], table[hi], t);
+}
+
+export function cvdSimulationMatrix(type, severity = 1) {
+	const normalized = normalizeCVDType(type);
+	const sev = normalizeCVDSeverity(severity);
+	if (normalized === "achroma") {
+		return interpolateMatrix3(IDENTITY3, ACHROMA_MATRIX, sev);
+	}
+	return interpolateMachadoTable(CVD_MACHADO_MATRICES[normalized], sev);
 }

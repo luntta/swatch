@@ -1,5 +1,5 @@
 // ============================================================
-// <t-simulation-grid> · Brettel/Viénot CVD contact sheet
+// <t-simulation-grid> · Machado CVD contact sheet
 // ============================================================
 
 import { subscribe, getRoot } from "./state.js";

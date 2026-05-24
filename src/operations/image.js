@@ -6,10 +6,8 @@
 // and preserves alpha untouched.
 
 import {
-	CVD_RGB_MATRICES,
-	IDENTITY3,
-	ACHROMA_MATRIX,
-	interpolateMatrix3,
+	cvdSimulationMatrix,
+	normalizeCVDSeverity,
 	normalizeCVDType
 } from "../data/cvd-matrices.js";
 
@@ -34,12 +32,6 @@ function clamp01ToByte(v) {
 	if (v <= 0) return 0;
 	if (v >= 1) return 255;
 	return LINEAR_TO_SRGB8[(v * (LUT_SIZE - 1) + 0.5) | 0];
-}
-
-function normalizeSeverity(severity) {
-	const n = Number(severity);
-	if (!Number.isFinite(n)) return 1;
-	return n < 0 ? 0 : n > 1 ? 1 : n;
 }
 
 function assertImageDataLike(imageData) {
@@ -102,12 +94,7 @@ function targetImageData(imageData, inPlace) {
 }
 
 function simulationMatrix(type, severity) {
-	const normalized = normalizeCVDType(type);
-	const sev = normalizeSeverity(severity);
-	const target = normalized === "achroma"
-		? ACHROMA_MATRIX
-		: CVD_RGB_MATRICES[normalized];
-	return interpolateMatrix3(IDENTITY3, target, sev);
+	return cvdSimulationMatrix(type, severity);
 }
 
 function correctionMatrix(type, severity) {
@@ -119,11 +106,7 @@ function correctionMatrix(type, severity) {
 	}
 	return {
 		normalized,
-		matrix: interpolateMatrix3(
-			IDENTITY3,
-			CVD_RGB_MATRICES[normalized],
-			normalizeSeverity(severity)
-		)
+		matrix: cvdSimulationMatrix(normalized, normalizeCVDSeverity(severity))
 	};
 }
 

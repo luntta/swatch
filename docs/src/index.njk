@@ -18,7 +18,7 @@ playground: true
 			<p class="hero__lede">
 				CSS Color 4 parsing, 21 perceptual spaces, OKLCh manipulation,
 				color scales, built-in palettes, blend modes, wide-gamut support —
-				plus Brettel/Viénot CVD simulation, Fidaner daltonization, palette
+				plus Machado CVD simulation, Fidaner daltonization, palette
 				distinguishability, WCAG 2.1 and APCA contrast.
 			</p>
 			<div class="hero__cta">
@@ -98,13 +98,9 @@ playground: true
 				to the same sensation for them.
 			</p>
 			<p class="section__lede">
-				Viénot, Brettel and Mollon (1999) worked out exactly where that
-				collapse happens: for each deficiency, all the colors a
-				dichromat can't tell apart lie along straight lines in LMS cone
-				space, and every line hits a shared "confusion plane". To
-				simulate what the dichromat sees, you project the original
-				color onto that plane — keeping only the information their eyes
-				could actually recover. Drag the severity slider to walk the
+				Machado, Oliveira and Fernandes model that collapse with
+				linear-light RGB transform matrices for each deficiency and
+				severity. Drag the severity slider to walk the
 				anomalous-trichromat continuum from full color (0) to full
 				dichromacy (1), covering the milder shifted-cone cases in
 				between.

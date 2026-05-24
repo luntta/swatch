@@ -61,16 +61,16 @@ async function decodeImage(file) {
 
 function processFallback(imageData, severity) {
 	const started = performance.now();
-	const outputs = TYPES.map((type) => {
+	const outputs = TYPES.map(({ key }) => {
 		const out = makeImageData(
 			imageData.data,
 			imageData.width,
 			imageData.height
 		);
-		if (type !== "normal") {
-			swatch.simulateImageData(out, type, { severity, inPlace: true });
+		if (key !== "normal") {
+			swatch.simulateImageData(out, key, { severity, inPlace: true });
 		}
-		return { type, imageData: out };
+		return { type: key, imageData: out };
 	});
 	return { outputs, duration: performance.now() - started };
 }

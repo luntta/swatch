@@ -160,6 +160,22 @@ describe("Phase 16: CVD simulate", () => {
 		expect(out.srgb.r).toBeLessThan(0.5);
 	});
 
+	it("matches Machado full-severity primary-color references", () => {
+		const cases = [
+			["#ff0000", "protan", [109, 95, 0]],
+			["#ff0000", "deutan", [163, 144, 0]],
+			["#00ff00", "protan", [255, 229, 0]],
+			["#00ff00", "deutan", [239, 214, 58]],
+			["#0000ff", "protan", [0, 89, 255]],
+			["#0000ff", "deutan", [0, 61, 251]]
+		];
+
+		for (const [input, type, expected] of cases) {
+			const { r, g, b } = swatch(input).simulate(type).rgb();
+			expect([r, g, b], `${input} ${type}`).toEqual(expected);
+		}
+	});
+
 	it("deutan and tritan are also supported", () => {
 		expect(() => simulate("#00ff00", "deutan")).not.toThrow();
 		expect(() => simulate("#0000ff", "tritan")).not.toThrow();

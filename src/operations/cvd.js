@@ -1,19 +1,16 @@
 // Color Vision Deficiency simulation and daltonization.
 //
-// Projection matrices for protan/deutan/tritan come from
-// data/cvd-matrices.js via the Brettel/Viénot anchor-line method.
-// simulate() interpolates between the identity and the dichromat
-// matrix by `severity` (0..1). daltonize() uses Fidaner-style error
-// redistribution: compute what the dichromat loses (the delta in
-// linear sRGB) and shift it into channels the user can still see.
+// Projection matrices for protan/deutan/tritan come from the
+// Machado/Oliveira/Fernandes severity table in data/cvd-matrices.js.
+// daltonize() uses Fidaner-style error redistribution: compute what the
+// dichromat loses (the delta in linear sRGB) and shift it into channels the
+// user can still see.
 
 import { Swatch, swatch } from "../core/swatch-class.js";
 import { srgbToLinear, linearToSrgb } from "../spaces/srgb.js";
 import {
-	CVD_RGB_MATRICES,
-	IDENTITY3,
-	ACHROMA_MATRIX,
-	interpolateMatrix3,
+	cvdSimulationMatrix,
+	normalizeCVDSeverity,
 	normalizeCVDType
 } from "../data/cvd-matrices.js";
 
@@ -39,19 +36,7 @@ function clamp01Triplet(v) {
 
 export function simulate(input, type, { severity = 1 } = {}) {
 	const s = toSwatch(input);
-	const sev = Math.max(0, Math.min(1, severity));
-	const normalized = normalizeCVDType(type);
-
-	let M;
-	if (normalized === "achroma") {
-		M = interpolateMatrix3(IDENTITY3, ACHROMA_MATRIX, sev);
-	} else {
-		M = interpolateMatrix3(
-			IDENTITY3,
-			CVD_RGB_MATRICES[normalized],
-			sev
-		);
-	}
+	const M = cvdSimulationMatrix(type, severity);
 
 	const { r, g, b } = s.srgb;
 	const lin = srgbToLinear([r, g, b]);
@@ -67,7 +52,7 @@ export function simulate(input, type, { severity = 1 } = {}) {
 
 export function daltonize(input, type, { severity = 1 } = {}) {
 	const s = toSwatch(input);
-	const sev = Math.max(0, Math.min(1, severity));
+	const sev = normalizeCVDSeverity(severity);
 	const normalized = normalizeCVDType(type);
 	if (normalized === "achroma") {
 		throw new Error(
@@ -75,11 +60,7 @@ export function daltonize(input, type, { severity = 1 } = {}) {
 		);
 	}
 
-	const M = interpolateMatrix3(
-		IDENTITY3,
-		CVD_RGB_MATRICES[normalized],
-		sev
-	);
+	const M = cvdSimulationMatrix(normalized, sev);
 
 	const { r, g, b } = s.srgb;
 	const lin = srgbToLinear([r, g, b]);
