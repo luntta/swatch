@@ -74,4 +74,22 @@ describe("v3 DX helpers", () => {
 		expect(c.hex()).toBe("#3366cc");
 		expect(c.rgb()).toEqual({ r: 51, g: 102, b: 204 });
 	});
+
+	it("suggests close matches for stringly typed API options", () => {
+		expect(() => swatch("#ff0000").to("oklhc")).toThrow(
+			/Did you mean "oklch"/
+		);
+		expect(() => swatch("#ff0000").get("oklch.lightness")).toThrow(
+			/Did you mean "l"/
+		);
+		expect(() => swatch("#ff0000").simulate("duetan")).toThrow(
+			/Did you mean "deutan"/
+		);
+		expect(() =>
+			swatch("color(display-p3 1 0 0)").toGamut({ method: "clips" })
+		).toThrow(/Did you mean "clip"/);
+		expect(() => swatch.scale("virids")).toThrow(
+			/Did you mean "viridis"/
+		);
+	});
 });

@@ -415,6 +415,19 @@ c.to(swatch.spaces.oklch); // ok
 // c.get("oklch.lightness"); // TypeScript error
 ```
 
+## Development
+
+```bash
+npm install
+npm test
+npm run docs:dev
+npm run check
+npm run pack:check
+```
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the repo layout, docs workflow,
+and release checklist.
+
 ## License
 
 MIT

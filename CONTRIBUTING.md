@@ -1,0 +1,84 @@
+# Contributing to Swatch
+
+Thanks for working on Swatch. This repo contains the library, tests, TypeScript
+declarations, and the Eleventy docs/playground.
+
+## Requirements
+
+- Node.js 20 or newer.
+- npm.
+
+## Install
+
+```bash
+npm install
+npm --prefix docs install
+```
+
+## Common commands
+
+From the repository root:
+
+```bash
+npm test             # Run the library test suite
+npm run docs:dev     # Start the docs/playground at http://localhost:8080
+npm run docs:build   # Build the static docs site
+npm run check        # Run tests and build docs
+npm run pack:check   # Show the npm package contents without publishing
+```
+
+The docs package also has its own local scripts under `docs/package.json`.
+
+## Project layout
+
+- `src/swatch.js` is the public package entry point.
+- `src/bootstrap.js` registers built-in color spaces, parsers, operations,
+  palettes, scales, and factory statics.
+- `src/core/` contains the registry, immutable state helpers, and `Swatch`
+  class.
+- `src/spaces/` contains color-space conversions.
+- `src/parse/` contains CSS/object/named-color parsing.
+- `src/operations/` contains manipulation, gamut, contrast, CVD, ΔE, palette,
+  naming, random, and temperature helpers.
+- `src/scale/` and `src/palettes/` contain scale/interpolator and built-in
+  palette support.
+- `types/swatch.d.ts` is hand-written and should be updated with public API
+  changes.
+- `tests/` contains Vitest coverage for v2 compatibility and v3 APIs.
+- `docs/src/` contains the Eleventy site and interactive playground.
+
+## API design notes
+
+- `Swatch` instances are immutable. Operations should return a new `Swatch`.
+- The canonical state shape is `{ space, coords, alpha }`.
+- Space conversions route through the registry and are lazily memoized on the
+  instance.
+- Raw space getters such as `.srgb` return mathematical coordinates and may be
+  out of gamut. Display helpers such as `.hex()` and `.rgb()` gamut-map to sRGB
+  by default.
+- Public string options should have tests and helpful error messages.
+
+## Documentation changes
+
+When adding or changing public API:
+
+1. Update `README.md`.
+2. Update or add a page in `docs/src/reference/`.
+3. Add or update playground affordances if the feature is visual.
+4. Update `types/swatch.d.ts`.
+5. Add tests that exercise the documented examples.
+
+Run `npm run check` before opening a PR.
+
+## Release checklist
+
+Before publishing:
+
+```bash
+npm run check
+npm run pack:check
+```
+
+Then review the package contents printed by `pack:check` to make sure only the
+intended source, declarations, docs, changelog, migration guide, license, and
+package metadata are included.

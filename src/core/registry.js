@@ -19,6 +19,8 @@
 //   2. A.shortcuts[B] if defined
 //   3. B.fromXYZ(A.toXYZ(coords))
 
+import { appendSuggestion } from "../util/suggest.js";
+
 const spaces = new Map();
 
 export function registerSpace(space) {
@@ -43,7 +45,11 @@ export function registerSpace(space) {
 
 export function getSpace(id) {
 	const entry = spaces.get(id);
-	if (!entry) throw new Error(`Unknown color space: ${id}`);
+	if (!entry) {
+		throw new Error(
+			appendSuggestion(`Unknown color space: ${id}`, id, listSpaces())
+		);
+	}
 	return entry;
 }
 

@@ -13,6 +13,22 @@
 // a·X + b·Y in LMS space, solved via Cramer's rule.
 
 import { multiplyMatrices, invertMatrix } from "../util/matrix.js";
+import { appendSuggestion } from "../util/suggest.js";
+
+const CVD_TYPES = [
+	"protan",
+	"protanopia",
+	"protanomaly",
+	"deutan",
+	"deuteranopia",
+	"deuteranomaly",
+	"tritan",
+	"tritanopia",
+	"tritanomaly",
+	"achroma",
+	"achromatopsia",
+	"achromatomaly"
+];
 
 // sRGB→XYZ (D65), ported from src/swatch.js:1737-1743.
 const M_RGB_TO_XYZ = [
@@ -130,7 +146,9 @@ export function normalizeCVDType(type) {
 		return "tritan";
 	if (t === "achroma" || t === "achromatopsia" || t === "achromatomaly")
 		return "achroma";
-	throw new Error("Unknown CVD type: " + type);
+	throw new Error(
+		appendSuggestion(`Unknown CVD type: ${type}`, type, CVD_TYPES)
+	);
 }
 
 export const IDENTITY3 = [

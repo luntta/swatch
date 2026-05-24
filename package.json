@@ -18,7 +18,9 @@
     "!src/_v2-monolith.js",
     "!src/_v2-named-colors.js",
     "types",
+    "scripts/pack-check.mjs",
     "README.md",
+    "CONTRIBUTING.md",
     "MIGRATING.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -28,7 +30,11 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "docs:dev": "npm --prefix docs run dev",
+    "docs:build": "npm --prefix docs run build",
+    "check": "npm test && npm run docs:build",
+    "pack:check": "node scripts/pack-check.mjs"
   },
   "devDependencies": {
     "vitest": "^2.1.0"

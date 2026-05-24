@@ -25,7 +25,8 @@
 
 import { Swatch, swatch } from "../core/swatch-class.js";
 import { mix } from "../operations/mix.js";
-import { getPalette } from "../palettes/index.js";
+import { getPalette, listPalettes } from "../palettes/index.js";
+import { appendSuggestion } from "../util/suggest.js";
 
 function toSwatch(input) {
 	return input instanceof Swatch ? input : swatch(input);
@@ -242,7 +243,13 @@ export function scale(stops) {
 	if (typeof stops === "string") {
 		const palette = getPalette(stops);
 		if (!palette) {
-			throw new Error(`scale: unknown palette "${stops}"`);
+			throw new Error(
+				appendSuggestion(
+					`scale: unknown palette "${stops}"`,
+					stops,
+					listPalettes()
+				)
+			);
 		}
 		resolved = palette;
 	} else if (typeof stops === "function") {

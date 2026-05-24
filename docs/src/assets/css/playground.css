@@ -75,6 +75,41 @@
 	flex-wrap: wrap;
 }
 
+/* Playground section nav ---------------------------------------------- */
+.section-jump {
+	position: sticky;
+	top: calc(56px + var(--s-2));
+	z-index: 40;
+	display: flex;
+	gap: var(--s-2);
+	overflow-x: auto;
+	padding: var(--s-2);
+	margin: 0 calc(var(--s-2) * -1) var(--s-4);
+	background: color-mix(in oklab, var(--bg) 92%, transparent);
+	backdrop-filter: saturate(180%) blur(14px);
+	-webkit-backdrop-filter: saturate(180%) blur(14px);
+	border: 1px solid var(--border-soft);
+	border-radius: var(--r-2);
+	scrollbar-width: thin;
+}
+.section-jump a {
+	flex: 0 0 auto;
+	border: 0;
+	border-radius: 999px;
+	padding: var(--s-2) var(--s-3);
+	font-family: var(--font-mono);
+	font-size: var(--fs-xs);
+	color: var(--ink-3);
+	background: var(--surface);
+	transition: color var(--dur) var(--ease),
+		background var(--dur) var(--ease);
+}
+.section-jump a:hover,
+.section-jump a:focus-visible {
+	color: var(--ink);
+	background: var(--bg);
+}
+
 .btn {
 	display: inline-flex;
 	align-items: center;
@@ -165,6 +200,7 @@
 .section {
 	padding: var(--s-8) 0;
 	border-top: 1px solid var(--border);
+	scroll-margin-top: 7rem;
 }
 .section:last-of-type {
 	padding-bottom: var(--s-9);

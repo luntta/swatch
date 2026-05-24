@@ -10,7 +10,9 @@
 		<link rel="stylesheet" href="{{ '/assets/css/tokens.css' | relUrl(page.url) }}" />
 		<link rel="stylesheet" href="{{ '/assets/css/base.css' | relUrl(page.url) }}" />
 		<link rel="stylesheet" href="{{ '/assets/css/layout.css' | relUrl(page.url) }}" />
-		<link rel="stylesheet" href="{{ '/assets/css/playground.css' | relUrl(page.url) }}" />
+		{% if playground %}
+			<link rel="stylesheet" href="{{ '/assets/css/playground.css' | relUrl(page.url) }}" />
+		{% endif %}
 		<link rel="stylesheet" href="{{ '/assets/css/prism.css' | relUrl(page.url) }}" />
 
 		<script>
@@ -33,15 +35,17 @@
 
 		<header class="site-header">
 			<div class="brand-lockup">
-				<label class="header-color" data-header-color-chip title="Pick playground color">
-					<span class="visually-hidden">Pick playground color</span>
-					<input
-						id="header-color-picker"
-						type="color"
-						data-header-color-picker
-						aria-label="Pick playground color"
-					/>
-				</label>
+				{% if playground %}
+					<label class="header-color" data-header-color-chip title="Pick playground color">
+						<span class="visually-hidden">Pick playground color</span>
+						<input
+							id="header-color-picker"
+							type="color"
+							data-header-color-picker
+							aria-label="Pick playground color"
+						/>
+					</label>
+				{% endif %}
 				<a class="wordmark" href="{{ '/' | relUrl(page.url) }}" aria-label="Swatch home">
 					<span class="wordmark__name">Swatch</span>
 					<span class="wordmark__version">{{ site.version }}</span>
@@ -81,7 +85,9 @@
 
 		<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-		<script type="module" src="{{ '/assets/js/playground/index.js' | relUrl(page.url) }}"></script>
+		{% if playground %}
+			<script type="module" src="{{ '/assets/js/playground/index.js' | relUrl(page.url) }}"></script>
+		{% endif %}
 		<script>
 			// Theme toggle
 			var themeToggle = document.querySelector("[data-theme-toggle]");

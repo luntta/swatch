@@ -2,6 +2,7 @@
 layout: base.njk
 title: "Playground"
 description: "An interactive playground for Swatch — a color library with first-class color blindness simulation."
+playground: true
 ---
 <div class="page">
 
@@ -38,6 +39,22 @@ description: "An interactive playground for Swatch — a color library with firs
 			</dl>
 		</aside>
 	</section>
+
+	<nav class="section-jump" aria-label="Playground sections">
+		<a href="#playground">Input</a>
+		<a href="#simulation">Simulation</a>
+		<a href="#daltonize">Daltonize</a>
+		<a href="#contrast">Contrast</a>
+		<a href="#manipulate">Manipulate</a>
+		<a href="#tint-shade">Tint / Shade</a>
+		<a href="#blend">Blend</a>
+		<a href="#harmonies">Harmonies</a>
+		<a href="#scales">Scales</a>
+		<a href="#naming">Naming</a>
+		<a href="#temperature">Temperature</a>
+		<a href="#palette">Palette</a>
+		<a href="#delta-e">Delta E</a>
+	</nav>
 
 	{# ============================================================
 	   Root color input
@@ -84,7 +101,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Simulation grid
 	   ============================================================ #}
-	<section class="section">
+	<section id="simulation" class="section">
 		<div class="section__head">
 			<span class="section__index">02 — Simulation</span>
 			<h2 class="section__title">Through other eyes.</h2>
@@ -122,7 +139,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Daltonize
 	   ============================================================ #}
-	<section class="section">
+	<section id="daltonize" class="section">
 		<div class="section__head">
 			<span class="section__index">03 — Daltonize</span>
 			<h2 class="section__title">Restore lost information.</h2>
@@ -158,7 +175,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Contrast / WCAG / APCA
 	   ============================================================ #}
-	<section class="section">
+	<section id="contrast" class="section">
 		<div class="section__head">
 			<span class="section__index">04 — Contrast</span>
 			<h2 class="section__title">WCAG 2.1 and APCA.</h2>
@@ -216,7 +233,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Manipulate
 	   ============================================================ #}
-	<section class="section">
+	<section id="manipulate" class="section">
 		<div class="section__head">
 			<span class="section__index">05 — Manipulate</span>
 			<h2 class="section__title">Lighten, saturate, spin.</h2>
@@ -260,7 +277,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Tint / Shade / Tone
 	   ============================================================ #}
-	<section class="section">
+	<section id="tint-shade" class="section">
 		<div class="section__head">
 			<span class="section__index">06 — Tint / Shade</span>
 			<h2 class="section__title">Mix toward white, black, or grey.</h2>
@@ -291,7 +308,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Blend
 	   ============================================================ #}
-	<section class="section">
+	<section id="blend" class="section">
 		<div class="section__head">
 			<span class="section__index">07 — Blend</span>
 			<h2 class="section__title">Compositing blend modes.</h2>
@@ -348,7 +365,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Harmonies
 	   ============================================================ #}
-	<section class="section">
+	<section id="harmonies" class="section">
 		<div class="section__head">
 			<span class="section__index">08 — Harmonies</span>
 			<h2 class="section__title">Sets that belong together.</h2>
@@ -366,7 +383,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Scales
 	   ============================================================ #}
-	<section class="section">
+	<section id="scales" class="section">
 		<div class="section__head">
 			<span class="section__index">09 — Scales</span>
 			<h2 class="section__title">Continuous color ramps.</h2>
@@ -416,7 +433,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Naming
 	   ============================================================ #}
-	<section class="section">
+	<section id="naming" class="section">
 		<div class="section__head">
 			<span class="section__index">10 — Naming</span>
 			<h2 class="section__title">What's it called?</h2>
@@ -441,7 +458,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Temperature
 	   ============================================================ #}
-	<section class="section">
+	<section id="temperature" class="section">
 		<div class="section__head">
 			<span class="section__index">11 — Temperature</span>
 			<h2 class="section__title">Blackbody color.</h2>
@@ -474,7 +491,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Palette distinguishability
 	   ============================================================ #}
-	<section class="section">
+	<section id="palette" class="section">
 		<div class="section__head">
 			<span class="section__index">12 — Palette</span>
 			<h2 class="section__title">Distinguishable under CVD.</h2>
@@ -542,7 +559,7 @@ description: "An interactive playground for Swatch — a color library with firs
 	{# ============================================================
 	   Delta E
 	   ============================================================ #}
-	<section class="section">
+	<section id="delta-e" class="section">
 		<div class="section__head">
 			<span class="section__index">13 — Delta E</span>
 			<h2 class="section__title">How far apart?</h2>

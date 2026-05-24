@@ -10,10 +10,29 @@
 // space named in the path (so `set(red, 'oklch.l', 0.5).space === 'oklch'`).
 
 import { Swatch } from "../core/swatch-class.js";
-import { getSpace, hasSpace } from "../core/registry.js";
+import { getSpace, hasSpace, listSpaces } from "../core/registry.js";
+import { appendSuggestion, closestMatch } from "../util/suggest.js";
 
 const SPACE_ALIASES = {
 	rgb: "srgb"
+};
+
+const CHANNEL_NAME_HINTS = {
+	red: "r",
+	green: "g",
+	blue: "b",
+	lightness: "l",
+	luminance: "l",
+	chroma: "c",
+	hue: "h",
+	saturation: "s",
+	value: "v",
+	whiteness: "w",
+	blackness: "b",
+	cyan: "c",
+	magenta: "m",
+	yellow: "y",
+	black: "k"
 };
 
 function foldCmyk({ c, m, y, k }) {
@@ -23,6 +42,12 @@ function foldCmyk({ c, m, y, k }) {
 function resolveSpaceId(token) {
 	if (SPACE_ALIASES[token]) return SPACE_ALIASES[token];
 	return token;
+}
+
+function suggestChannel(channel, channels) {
+	const hinted = CHANNEL_NAME_HINTS[channel];
+	if (hinted && channels.includes(hinted)) return hinted;
+	return closestMatch(channel, channels);
 }
 
 function parsePath(path) {
@@ -42,7 +67,13 @@ function parsePath(path) {
 	const channel = path.slice(dotIdx + 1).toLowerCase();
 	const spaceId = resolveSpaceId(spaceToken);
 	if (!hasSpace(spaceId)) {
-		throw new Error(`channel path: unknown space "${spaceToken}"`);
+		throw new Error(
+			appendSuggestion(
+				`channel path: unknown space "${spaceToken}"`,
+				spaceToken,
+				["rgb", ...listSpaces()]
+			)
+		);
 	}
 	if (spaceId === "cmyk" && channel === "k") {
 		return { kind: "cmyk-k" };
@@ -50,8 +81,12 @@ function parsePath(path) {
 	const space = getSpace(spaceId);
 	const idx = space.channels.indexOf(channel);
 	if (idx < 0) {
+		const suggestion = suggestChannel(channel, space.channels);
+		const maybeSuggestion = suggestion
+			? ` Did you mean "${suggestion}"?`
+			: "";
 		throw new Error(
-			`channel path: space "${spaceId}" has no channel "${channel}" (has ${space.channels.join(", ")})`
+			`channel path: space "${spaceId}" has no channel "${channel}".${maybeSuggestion} Valid channels: ${space.channels.join(", ")}.`
 		);
 	}
 	return { kind: "channel", spaceId, channel, index: idx };

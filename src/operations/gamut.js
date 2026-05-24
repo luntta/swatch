@@ -20,6 +20,7 @@
 import { Swatch } from "../core/swatch-class.js";
 import { getSpace } from "../core/registry.js";
 import { clamp } from "../util/math.js";
+import { appendSuggestion } from "../util/suggest.js";
 
 const DEFAULT_EPSILON = 1e-5;
 const JND = 0.02;
@@ -195,5 +196,11 @@ export function toGamut(swatch, opts = {}) {
 	if (method === "css4" || method === "oklch-chroma") {
 		return toGamutCss4(swatch, spaceId);
 	}
-	throw new Error(`toGamut: unknown method "${method}"`);
+	throw new Error(
+		appendSuggestion(
+			`toGamut: unknown method "${method}"`,
+			method,
+			["css4", "oklch-chroma", "clip"]
+		)
+	);
 }
