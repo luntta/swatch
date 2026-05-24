@@ -17,11 +17,11 @@ scales, built-in palettes, blend modes, WCAG 2.1 and APCA contrast.
 ## Install
 
 ```bash
-npm install swatch
+npm install @luntta/swatch
 ```
 
 ```js
-import swatch from "swatch";
+import swatch from "@luntta/swatch";
 ```
 
 ## A 30-second tour

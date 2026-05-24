@@ -60,7 +60,7 @@ Hand-written declarations ship in `types/swatch.d.ts` and are referenced by
 caught at compile time:
 
 ```ts
-import swatch from "swatch";
+import swatch from "@luntta/swatch";
 
 const c = swatch("#3366cc");
 const sim: ReturnType<typeof c.simulate> = c.simulate("deutan");

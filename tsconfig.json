@@ -6,7 +6,7 @@
 		"module": "ESNext",
 		"moduleResolution": "bundler",
 		"paths": {
-			"swatch": ["./types/swatch.d.ts"]
+			"@luntta/swatch": ["./types/swatch.d.ts"]
 		},
 		"lib": ["ES2022"],
 		"skipLibCheck": false,

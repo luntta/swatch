@@ -1,5 +1,5 @@
 {
-  "name": "swatch",
+  "name": "@luntta/swatch",
   "version": "3.0.0",
   "description": "A color library with first-class colorblind support, CSS Color 4 parsing, wide-gamut spaces, OKLCh manipulation, color scales, built-in palettes, blend modes, WCAG 2.1, and APCA.",
   "type": "module",
@@ -47,6 +47,9 @@
   },
   "author": "Raine Luntta",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "bugs": {
     "url": "https://github.com/luntta/swatch/issues"
   },

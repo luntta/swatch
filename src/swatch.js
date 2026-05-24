@@ -16,7 +16,7 @@
 //
 // Typical usage:
 //
-//   import swatch from "swatch";
+//   import swatch from "@luntta/swatch";
 //   swatch("oklch(0.7 0.15 240)").lighten(0.05).toString({ format: "hex" });
 
 import "./bootstrap.js";
@@ -28,7 +28,7 @@ export default swatch;
 // Named re-exports of the factory statics, so bundlers can tree-shake unused
 // helpers and editors can autocomplete them directly:
 //
-//   import { scale, contrast, spaces } from "swatch";
+//   import { scale, contrast, spaces } from "@luntta/swatch";
 //
 // `swatch.try` stays on the factory only — `try` is a reserved word and
 // cannot be a named export.

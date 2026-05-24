@@ -506,7 +506,7 @@ export function swatch(input) {
 	if (input instanceof Swatch) return input;
 	if (!_parseInput) {
 		throw new Error(
-			"swatch(): parser not initialized. Import swatch from 'swatch' (the package entry point) rather than reaching into core/swatch-class.js directly."
+			"swatch(): parser not initialized. Import swatch from '@luntta/swatch' (the package entry point) rather than reaching into core/swatch-class.js directly."
 		);
 	}
 	const state = _parseInput(input);

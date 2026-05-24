@@ -13,7 +13,7 @@ import swatch, {
 	cvd,
 	type SpaceId,
 	type CVDType
-} from "swatch";
+} from "@luntta/swatch";
 
 // ── Positive cases: these must type-check ──
 

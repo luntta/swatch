@@ -9,18 +9,18 @@ A color library with **first-class colorblind support** — physically correct B
 ## Install
 
 ```bash
-npm install swatch
+npm install @luntta/swatch
 ```
 
 ```js
-import swatch from "swatch";
+import swatch from "@luntta/swatch";
 ```
 
 The factory statics are also available as named exports, so bundlers can
 tree-shake the ones you don't use:
 
 ```js
-import { scale, contrast, simulate } from "swatch";
+import { scale, contrast, simulate } from "@luntta/swatch";
 ```
 
 ## Quick start
